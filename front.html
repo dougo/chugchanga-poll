@@ -1,0 +1,21 @@
+<html>
+  <head><title>Chugchanga-L Favorite Releases Poll</title></head>
+
+  <body>
+    {% if not secret %}
+      <p>Hello, {{ user.nickname }}!
+         This site is for members of a private discussion mailing list.
+      <p>If you are a member of Chugchanga-L, please enter the secret word:
+    {% else %}
+      <p>Sorry, "{{ secret|escape }}" is not the secret word.  Try again:
+    {% endif %}
+	<form action="/" method="post">
+	  <input name="secret">
+	  <input type="submit" value="Let me in!">
+	</form>
+      <p>Or <a href="{{ logout }}">login as a different user</a>.
+    {% if admin %}
+      <p>Or <a href="/admin/">administrate</a>.
+    {% endif %}
+  </body>
+</html>

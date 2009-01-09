@@ -1,0 +1,51 @@
+<html>
+  <head><title>Chugchanga-L Favorite Releases Poll {{ year }}</title></head>
+  <body>
+    <p>Hello, {{ user.nickname }}!
+      <small>(<a href="{{ logout }}">login as a different user</a>)</small>
+      {% if admin %}
+        <small>(<a href="/admin/">administrate</a>)</small>
+      {% endif %}
+    <p>Welcome to the Chugchanga-L Poll.  Enter your favorite
+      releases of {{ year }}
+      {% if other_years %}
+        below, or choose a different year:
+        {% for y in other_years %}
+          <a href="?year={{ y }}">{{ y }}</a>
+	{% endfor %}
+      {% else %}
+	below:
+      {% endif %}
+    <p>
+      <form action="." method="post">
+	<input type="submit" value="Save changes"><br><br>
+	Anonymous:
+	<input type="checkbox" name="anonymous"
+	       {% if ballot.anonymous %} checked {% endif %}>
+	<br><br>
+	Opening comments:<br>
+	<textarea name="preamble"
+		  rows="4" cols="90">{{ ballot.preamble }}</textarea><br><br>
+	{% for vote in votes %}
+	  {{ vote.rank }}. Artist:
+	  <input name="artist{{ vote.rank }}" size="20"
+		 value="{{ vote.artist }}">
+	  Release:
+	  <input name="release{{ vote.rank }}" size="40"
+		 value="{{ vote.release }}">
+	  <br>
+	  <textarea name="comments{{ vote.rank }}"
+		    rows="2" cols="90">{{ vote.comments }}</textarea>
+	  <br>
+	{% endfor %}
+	<br>Closing comments:<br>
+	<textarea name="postamble"
+		  rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
+	<input type="submit" value="Save changes">
+      </form>
+      <br><br>
+    <p><small><a href="http://code.google.com/p/chugchanga-poll/">The
+	  source code for this website is freely distributed under the GNU
+	  Affero General Public License v3.</a></small>
+  </body>
+</html>

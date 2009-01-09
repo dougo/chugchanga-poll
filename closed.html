@@ -1,0 +1,11 @@
+<html>
+  <head><title>Chugchanga-L Favorite Releases Poll</title></head>
+
+  <body>
+    <p>Hello, {{ user.nickname }}!  The Chugchanga-L Favorite Releases
+         Poll is currently closed.  Check back later!
+    {% if admin %}
+      <p>(Or <a href="/admin/">administrate</a>.)
+    {% endif %}
+  </body>
+</html>
