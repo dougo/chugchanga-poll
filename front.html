@@ -5,15 +5,20 @@
     {% if not secret %}
       <p>Hello, {{ user.nickname }}!
          This site is for members of a private discussion mailing list.
-      <p>If you are a member of Chugchanga-L, please enter the secret word:
+      <p>If you are a member of Chugchanga-L, please enter the secret
+	word.  Also, please provide your full name so I know who you
+	are.  (Don't worry, you can still choose to submit an anonymous
+	ballot in the poll.)
     {% else %}
-      <p>Sorry, "{{ secret|escape }}" is not the secret word.  Try again:
+      <p>Sorry, "{{ secret|escape }}" is not the secret word.  Try again.
     {% endif %}
-	<form action="/" method="post">
-	  <input name="secret">
-	  <input type="submit" value="Let me in!">
-	</form>
-      <p>Or <a href="{{ logout }}">login as a different user</a>.
+    <p>
+      <form action="/" method="post">
+	Secret word: <input name="secret"><br>
+	Full name: <input name="name" value="{{ name }}"><br>
+	<input type="submit" value="Let me in!">
+      </form>
+    <p>Or <a href="{{ logout }}">login as a different user</a>.
     {% if admin %}
       <p>Or <a href="/admin/">administrate</a>.
     {% endif %}

@@ -1,7 +1,8 @@
 <html>
   <head><title>Chugchanga-L Favorite Releases Poll {{ year }}</title></head>
   <body>
-    <p>Hello, {{ user.nickname }}!
+    <p>Hello, {{ ballot.voter.name }}!
+      <small>(<a href="/profile/">edit your profile</a>)</small>
       <small>(<a href="{{ logout }}">login as a different user</a>)</small>
       {% if admin %}
         <small>(<a href="/admin/">administrate</a>)</small>

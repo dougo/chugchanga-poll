@@ -1,0 +1,16 @@
+<html>
+  <head><title>Chugchanga-L Favorite Releases Poll Profile</title></head>
+  <body>
+    <p>Hello, {{ voter.name }}!
+      <small>(<a href="{{ logout }}">login as a different user</a>)</small>
+      {% if admin %}
+        <small>(<a href="/admin/">administrate</a>)</small>
+      {% endif %}
+    <p>
+      <form action="/profile/" method="post">
+	Full name: <input name="name" value="{{ voter.name }}"><br>
+	Home page URL: <input name="url" value="{{ voter.url }}" size="40"><br>
+	<input type="submit" value="Save changes">
+      </form>
+  </body>
+</html>
