@@ -30,103 +30,132 @@ class Voter(db.Model):
 class Ballot(db.Model):
     voter = db.ReferenceProperty(Voter, required=True)
     year = db.IntegerProperty(required=True)
+    # TO DO: (full)name?
     anonymous = db.BooleanProperty(default=False)
     preamble = db.TextProperty(default='')
     postamble = db.TextProperty(default='')
 
 class Vote(db.Model):
     ballot = db.ReferenceProperty(Ballot, required=True)
-    rank = db.IntegerProperty(required=True)
+    category = db.StringProperty(default='vote') # vote, mention, or note
+    rank = db.IntegerProperty(required=True) # 1-based rank within category
     artist = db.StringProperty(default='')
     release = db.StringProperty(default='')
     comments = db.TextProperty(default='')
 
 class MainPage(webapp.RequestHandler):
-    def get(self):
-        user = users.get_current_user()
-        logout = users.create_logout_url(self.request.uri)
+    def validate(self):
+        self.user = users.get_current_user()
+        self.logout = users.create_logout_url(self.request.uri)
 
-        voter = Voter.gql("WHERE user = :1", user).get()
-        if not voter:
+        self.voter = Voter.gql("WHERE user = :1", self.user).get()
+        if not self.voter:
             # User hasn't entered the secret word, show him the front page.
-            self.frontPage(user, logout)
+            self.frontPage()
             return
 
-        years = map(lambda y: y.year,
-                    Year.gql("WHERE votingIsOpen = True ORDER BY year"))
-        if not years:
-            self.closedPage(user, logout)
+        self.years = map(lambda y: y.year,
+                         Year.gql("WHERE votingIsOpen = True ORDER BY year"))
+        if not self.years:
+            self.closedPage()
             return
-        defaultYear = max(years)
-        year = int(self.request.get('year') or voter.year or defaultYear)
-        if year not in years:
-            year = defaultYear
-        if voter.year != year:
-            voter.year = year
-            voter.put()
+        defaultYear = max(self.years)
+        self.year = int(self.request.get('year') or self.voter.year
+                        or defaultYear)
+        if self.year not in self.years:
+            self.year = defaultYear
+        if self.voter.year != self.year:
+            self.voter.year = self.year
+            self.voter.put()
 
-        ballot = Ballot.gql("WHERE voter = :1 and year = :2", voter, year).get()
-        if not ballot:
-            ballot = Ballot(voter=voter, year=year)
-            ballot.put()
+        self.ballot = Ballot.gql("WHERE voter = :1 and year = :2",
+                                 self.voter, self.year).get()
+    def get(self):
+        self.validate()
+
+        if not self.ballot:
+            self.ballot = Ballot(voter=self.voter, year=self.year)
+            self.ballot.put()
             for rank in range(1, 21):
-                vote = Vote(ballot=ballot, rank=rank)
+                vote = Vote(ballot=self.ballot, rank=rank)
                 vote.put()
 
-        if self.request.method == 'POST':
-            ballot.anonymous = (self.request.get('anonymous') == 'on')
-            ballot.preamble = self.request.get('preamble')
-            ballot.postamble = self.request.get('postamble')
-            ballot.put()
-            for rank in range(1, 21):
-                vote = Vote.gql("WHERE ballot = :1 and rank = :2",
-                                ballot, rank).get()
-                vote.artist = self.request.get('artist%d' % rank)
-                vote.release = self.request.get('release%d' % rank)
-                vote.comments = self.request.get('comments%d' % rank)
-                vote.put()
-            self.redirect(self.request.uri)
-            return
+        votes = dict()
+        for category in ['vote', 'mention', 'note']:
+            votes[category] = Vote.gql("WHERE ballot = :1 AND category = :2"
+                                       " ORDER BY rank", self.ballot, category)
 
         path = os.path.join(os.path.dirname(__file__), 'main.html')
-        votes = ballot.vote_set
-        votes.order('rank')
-        years.remove(year)
+        self.years.remove(self.year)
         template_values = {
-            'user': user,
+            'user': self.user,
             'admin': users.is_current_user_admin(),
-            'logout': logout,
-            'year': year,
-            'other_years': years,
-            'ballot': ballot,
-            'votes': votes
+            'logout': self.logout,
+            'year': self.year,
+            'other_years': self.years,
+            'ballot': self.ballot,
+            'votes': votes,
             }
         self.response.out.write(template.render(path, template_values))
 
     def post(self):
-        return self.get()
+        self.validate()
 
-    def frontPage(self, user, logout):
+        # Delete the old ballot and votes and replace them with the
+        # request data.  This avoids cases where the form data doesn't
+        # match the current database (e.g. from the back button or a
+        # cloned window).
+        if self.ballot:
+            for vote in self.ballot.vote_set:
+                vote.delete()
+            self.ballot.delete()
+
+        ballot = Ballot(voter=self.voter, year=self.year)
+        if self.request.get('anonymous'):
+            ballot.anonymous = True
+        ballot.preamble = self.request.get('preamble')
+        ballot.postamble = self.request.get('postamble')
+        ballot.put()
+
+        numVotes = dict()
+        for cat in ['vote', 'mention', 'note']:
+            numVotes[cat] = int(self.request.get(cat + 's'))
+            for rank in range(1, numVotes[cat]+1):
+                vote = Vote(ballot=ballot, category=cat, rank=rank)
+                vote.artist = self.request.get('%s%dartist' % (cat, rank))
+                vote.release = self.request.get('%s%drelease' % (cat, rank))
+                vote.comments = self.request.get('%s%dcomments' % (cat, rank))
+                vote.put()
+        cat = self.request.get('add')
+        if cat:
+            # Add ten more votes in the requested category.
+            for rank in range(numVotes[cat]+1, numVotes[cat]+11):
+                Vote(ballot=ballot, category=cat, rank=rank).put()
+            self.redirect(self.request.uri + "#" + cat)
+        else:
+            self.redirect(self.request.uri)
+
+    def frontPage(self):
         secret = self.request.get('secret')
         if secret == secretWord():
-            Voter(user=user).put()
+            Voter(user=self.user).put()
             self.redirect(self.request.uri)
             return
         path = os.path.join(os.path.dirname(__file__), 'front.html')
         template_values = {
-            'user': user,
+            'user': self.user,
             'admin': users.is_current_user_admin(),
             'secret': secret,
-            'logout': logout
+            'logout': self.logout
             }
         self.response.out.write(template.render(path, template_values))
 
-    def closedPage(self, user, logout):
+    def closedPage(self):
         path = os.path.join(os.path.dirname(__file__), 'closed.html')
         template_values = {
-            'user': user,
+            'user': self.user,
             'admin': users.is_current_user_admin(),
-            'logout': logout
+            'logout': self.logout
             }
         self.response.out.write(template.render(path, template_values))
 

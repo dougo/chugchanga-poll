@@ -1,0 +1,10 @@
+{{ vote.rank }}. Artist:
+<input name="{{ vote.category }}{{ vote.rank }}artist" size="20"
+       value="{{ vote.artist }}">
+Release:
+<input name="{{ vote.category }}{{ vote.rank }}release" size="40"
+       value="{{ vote.release }}">
+<br>
+<textarea name="{{ vote.category}}{{ vote.rank }}comments"
+	  rows="2" cols="90">{{ vote.comments }}</textarea>
+<br>

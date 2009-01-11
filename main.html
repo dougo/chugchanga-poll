@@ -6,16 +6,27 @@
       {% if admin %}
         <small>(<a href="/admin/">administrate</a>)</small>
       {% endif %}
-    <p>Welcome to the Chugchanga-L Poll.  Enter your favorite
-      releases of {{ year }}
+    <p>Welcome to the Chugchanga-L Poll.  Enter up to 20 of your
+      favorite releases of {{ year }}
       {% if other_years %}
         below, or choose a different year:
         {% for y in other_years %}
           <a href="?year={{ y }}">{{ y }}</a>
 	{% endfor %}
       {% else %}
-	below:
+	below.
       {% endif %}
+
+    <p>If you have more than 20 favorite releases, enter the rest in
+      the <a href="#mention">honorable mentions</a> section below and
+      they will be counted as tie-breaker votes in the summary
+      tabulation.
+
+    <p>If there are other releases that you'd like to comment on,
+      enter them in the <a href="#note">other notable releases</a>
+      section below and your comments will appear in the summary, but
+      they won't be counted as favorites.
+
     <p>
       <form action="." method="post">
 	<input type="submit" value="Save changes"><br><br>
@@ -26,18 +37,40 @@
 	Opening comments:<br>
 	<textarea name="preamble"
 		  rows="4" cols="90">{{ ballot.preamble }}</textarea><br><br>
-	{% for vote in votes %}
-	  {{ vote.rank }}. Artist:
-	  <input name="artist{{ vote.rank }}" size="20"
-		 value="{{ vote.artist }}">
-	  Release:
-	  <input name="release{{ vote.rank }}" size="40"
-		 value="{{ vote.release }}">
-	  <br>
-	  <textarea name="comments{{ vote.rank }}"
-		    rows="2" cols="90">{{ vote.comments }}</textarea>
-	  <br>
+
+	<input type="hidden" name="votes" value="{{ votes.vote.count }}">
+	{% for vote in votes.vote %}
+	  {% include "vote.html" %}
 	{% endfor %}
+
+	<a name="mention"></a>
+	<input type="hidden" name="mentions" value="{{ votes.mention.count }}">
+	{% for vote in votes.mention %}
+	  {% ifequal forloop.counter 1 %}
+	    <br>Honorable mentions:<br>
+	  {% endifequal %}
+	  {% include "vote.html" %}
+	{% endfor %}
+	<br>
+	<button type="submit" name="add" value="mention">
+	  Add honorable mentions...
+	</button>
+	<br>
+
+	<a name="note"></a>
+	<input type="hidden" name="notes" value="{{ votes.note.count }}">
+	{% for vote in votes.note %}
+	  {% ifequal forloop.counter 1 %}
+	    <br>Other notable releases:<br>
+	  {% endifequal %}
+	  {% include "vote.html" %}
+	{% endfor %}
+	<br>
+	<button type="submit" name="add" value="note">
+	  Add other notable releases...
+	</button>
+	<br>
+
 	<br>Closing comments:<br>
 	<textarea name="postamble"
 		  rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
