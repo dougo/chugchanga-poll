@@ -171,7 +171,7 @@ class MainPage(VoterPage):
 
     def frontPage(self, user):
         secret = self.request.get('secret')
-        name = self.request.get('name')
+        name = self.request.get('name') or user.nickname()
         if secret == secretWord():
             Voter(user=user, name=name).put()
             self.redirect(self.request.uri)
@@ -209,7 +209,7 @@ class ProfilePage(VoterPage):
     def post(self):
         if not self.validate():
             return
-        self.voter.name = self.request.get('name')
+        self.voter.name = self.request.get('name') or self.voter.user.nickname()
         self.voter.url = self.request.get('url')
         self.voter.put()
         self.redirect('/')
