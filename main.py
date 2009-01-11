@@ -171,9 +171,9 @@ class MainPage(VoterPage):
 
     def frontPage(self, user):
         secret = self.request.get('secret')
-        name = self.request.get('name') or user.nickname()
+        name = self.request.get('name')
         if secret == secretWord():
-            Voter(user=user, name=name).put()
+            Voter(user=user, name=name or user.nickname()).put()
             self.redirect(self.request.uri)
             return
         path = os.path.join(os.path.dirname(__file__), 'front.html')
