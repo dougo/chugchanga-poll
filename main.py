@@ -155,6 +155,7 @@ class MainPage(VoterPage):
         # request data.  This avoids cases where the form data doesn't
         # match the current database (e.g. from the back button or a
         # cloned window).
+        # TO DO: do this in a transaction!
         if self.ballot:
             db.delete(self.ballot.vote_set)
             self.ballot.delete()
@@ -213,7 +214,7 @@ class MainPage(VoterPage):
 
 class ProfilePage(VoterPage):
     def get(self):
-        if not self.validate():
+        if self.validate():
             return
         path = os.path.join(os.path.dirname(__file__), 'profile.html')
         template_values = {
@@ -223,7 +224,7 @@ class ProfilePage(VoterPage):
         self.response.out.write(template.render(path, template_values))
         
     def post(self):
-        if not self.validate():
+        if self.validate():
             return
         self.voter.name = self.request.get('name') or self.voter.user.nickname()
         self.voter.url = self.request.get('url')
