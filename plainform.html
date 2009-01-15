@@ -1,0 +1,52 @@
+(If you want a slightly more modern interface, you can
+<a href="?view=js">switch back to the JavaScript view</a>.)
+
+<p>
+<form action="." method="post">
+  <input type="submit" value="Save changes"><br><br>
+  Anonymous:
+  <input type="checkbox" name="anonymous"
+	 {% if ballot.anonymous %} checked {% endif %}>
+  <br><br>
+  Opening comments:<br>
+  <textarea name="preamble"
+	    rows="4" cols="90">{{ ballot.preamble }}</textarea><br><br>
+
+  <input type="hidden" name="votes" value="{{ votes.vote.count }}">
+  {% for vote in votes.vote %}
+    {% include "vote.html" %}
+  {% endfor %}
+
+  <a name="mention"></a>
+  <input type="hidden" name="mentions" value="{{ votes.mention.count }}">
+  {% for vote in votes.mention %}
+    {% ifequal forloop.counter 1 %}
+      <br>Honorable mentions:<br>
+    {% endifequal %}
+    {% include "vote.html" %}
+  {% endfor %}
+  <br>
+  <button type="submit" name="add" value="mention">
+    Add honorable mentions...
+  </button>
+  <br>
+
+  <a name="note"></a>
+  <input type="hidden" name="notes" value="{{ votes.note.count }}">
+  {% for vote in votes.note %}
+    {% ifequal forloop.counter 1 %}
+      <br>Other notable releases:<br>
+    {% endifequal %}
+    {% include "vote.html" %}
+  {% endfor %}
+  <br>
+  <button type="submit" name="add" value="note">
+    Add other notable releases...
+  </button>
+  <br>
+
+  <br>Closing comments:<br>
+  <textarea name="postamble"
+	    rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
+  <input type="submit" value="Save changes">
+</form>

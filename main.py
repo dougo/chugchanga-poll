@@ -58,6 +58,7 @@ class Voter(db.Model):
     name = db.StringProperty(required=True)
     url = db.StringProperty(default='')
     year = db.IntegerProperty() # the year currently being edited
+    wantsPlain = db.BooleanProperty() # voter prefers plain HTML to Javascript
 
 class Ballot(db.Model):
     voter = db.ReferenceProperty(Voter, required=True)
@@ -107,6 +108,11 @@ class MainPage(VoterPage):
     def get(self):
         if not self.validate():
             return
+
+        view = self.request.get('view')
+        if view:
+            self.voter.wantsPlain = (view == 'plain')
+            self.voter.put()
 
         if not self.ballot:
             self.ballot = Ballot(voter=self.voter, year=self.year)
