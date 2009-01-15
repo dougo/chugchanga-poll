@@ -4,6 +4,8 @@
 <p>
 <script src="/static/prototype.js" type="text/javascript"></script>
 <script language="JavaScript">
+// <![CDATA[
+
 function save(id) {
   style = "font-family: sans-serif; font-size: smaller; " +
           "color:white; background:red;";
@@ -11,6 +13,35 @@ function save(id) {
   new Ajax.Updater(id + 'Status', '/ajax/',
                    { parameters: { name: id, value: $F(id) }});
 }
+
+function makeVoteFields(category, vote) {
+  prefix = category + vote.rank;
+  artist = new Element('input', {
+    name: prefix + "artist", size: 20, value: vote.artist
+  });
+  release = new Element('input', {
+    name: prefix + "release", size: 40, value: vote.release
+  });
+  comments = new Element('textarea', {
+    name: prefix + "comments", rows: 2, cols: 90
+  }).insert(vote.comments);
+  return new Element('div').insert(vote.rank + ". Artist: ").insert(artist)
+    .insert(" Release: ").insert(release).insert(new Element('br'))
+    .insert(comments).insert(new Element('br'));
+}
+
+function addVote(category) {
+  vote = { rank: votes[category].length + 1,
+           artist: "", release: "", comments: "" };
+  votes[category].push(vote);
+  $(category).insert(makeVoteFields(category, vote));
+}
+
+function addVotes(n, category) {
+  for (i = 0; i < n; i++) addVote(category);
+}
+
+// ]]>
 </script>
 
 <form action="." method="post">
@@ -19,37 +50,22 @@ function save(id) {
 	    onchange="javascript:save('preamble')"
 	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea><br><br>
 
-  <input type="hidden" name="votes" value="{{ votes.vote.count }}">
-  {% for vote in votes.vote %}
-    {% include "vote.html" %}
-  {% endfor %}
+  <div id="vote"></div>
 
   <a name="mention"></a>
-  <input type="hidden" name="mentions" value="{{ votes.mention.count }}">
-  {% for vote in votes.mention %}
-    {% ifequal forloop.counter 1 %}
-      <br>Honorable mentions:<br>
-    {% endifequal %}
-    {% include "vote.html" %}
-  {% endfor %}
+  <br>Honorable mentions:<br>
+  <div id="mention"></div>
   <br>
-  <button type="submit" name="add" value="mention">
-    Add honorable mentions...
-  </button>
+  <input type="button" value="Add honorable mentions..."
+	  onclick="addVotes(10, 'mention')">
   <br>
 
   <a name="note"></a>
-  <input type="hidden" name="notes" value="{{ votes.note.count }}">
-  {% for vote in votes.note %}
-    {% ifequal forloop.counter 1 %}
-      <br>Other notable releases:<br>
-    {% endifequal %}
-    {% include "vote.html" %}
-  {% endfor %}
+  <br>Other notable releases:<br>
+  <div id="note"></div>
   <br>
-  <button type="submit" name="add" value="note">
-    Add other notable releases...
-  </button>
+  <input type="button" value="Add other notable releases..."
+	  onclick="addVotes(10, 'note')">
   <br>
 
   <br>Closing comments: <span id="postambleStatus"></span><br>
@@ -63,3 +79,26 @@ function save(id) {
 	 onclick="javascript:save('anonymous')">
   <span id="anonymousStatus"></span>
 </form>
+
+<script language="JavaScript">
+// <![CDATA[
+
+votes = {
+  {% for category in votes.items %}
+    {{ category.0 }}: [
+      {% for vote in category.1 %}
+        { rank: "{{ vote.rank }}",
+          artist: "{{ vote.artist|escape }}",
+          release: "{{ vote.release|escape }}",
+          comments: "{{ vote.comments|escape }}" },
+      {% endfor %}
+    ],
+  {% endfor %}
+};
+
+for (category in votes)
+  for (i = 0; i < votes[category].length; i++)
+    $(category).insert(makeVoteFields(category, votes[category][i]));
+
+// ]]>
+</script>
