@@ -5,7 +5,9 @@
 <script src="/static/prototype.js" type="text/javascript"></script>
 <script language="JavaScript">
 function save(id) {
-  $(id + 'Status').update("Saving...");
+  style = "font-family: sans-serif; font-size: smaller; " +
+          "color:white; background:red;";
+  $(id + 'Status').setStyle(style).update("Saving...");
   new Ajax.Updater(id + 'Status', '/ajax/',
                    { parameters: { name: id, value: $F(id) }});
 }
