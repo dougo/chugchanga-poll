@@ -2,11 +2,13 @@
 <a href="?view=plain">switch to the plain HTML form</a>.)
 
 <p>
+<script src="/static/prototype.js" type="text/javascript"></script>
+
 <form action="." method="post">
-  <input type="submit" value="Save changes"><br><br>
   Anonymous:
   <input type="checkbox" name="anonymous"
-	 {% if ballot.anonymous %} checked {% endif %}>
+	 {% if ballot.anonymous %} checked {% endif %}
+	 onclick="">
   <br><br>
   Opening comments:<br>
   <textarea name="preamble"
@@ -48,5 +50,4 @@
   <br>Closing comments:<br>
   <textarea name="postamble"
 	    rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
-  <input type="submit" value="Save changes">
 </form>
