@@ -82,15 +82,14 @@ class VoterPage(webapp.RequestHandler):
 
         self.voter = Voter.gql("WHERE user = :1", user).get()
         if not self.voter:
-            # User hasn't entered the secret word, show the front page.
-            self.frontPage(user)
-            return False
+            # User hasn't entered the secret word.
+            return 'invalid'
 
         self.years = map(lambda y: y.year,
                          Year.gql("WHERE votingIsOpen = True ORDER BY year"))
         if not self.years:
-            self.closedPage()
-            return False
+            # No polls are open.
+            return 'closed'
         defaultYear = max(self.years)
         self.year = int(self.request.get('year') or self.voter.year
                         or defaultYear)
@@ -102,9 +101,19 @@ class VoterPage(webapp.RequestHandler):
 
         self.ballot = Ballot.gql("WHERE voter = :1 and year = :2",
                                  self.voter, self.year).get()
-        return True
+        return None
 
 class MainPage(VoterPage):
+    def validate(self):
+        status = VoterPage.validate(self)
+        if status == 'invalid':
+            self.frontPage()
+            return False
+        if status == 'closed':
+            self.closedPage()
+            return False
+        return True
+
     def get(self):
         if not self.validate():
             return
@@ -175,7 +184,8 @@ class MainPage(VoterPage):
         else:
             self.redirect(self.request.uri)
 
-    def frontPage(self, user):
+    def frontPage(self):
+        user = users.get_current_user()
         secret = self.request.get('secret')
         name = self.request.get('name')
         if secret == secretWord():
@@ -220,10 +230,32 @@ class ProfilePage(VoterPage):
         self.voter.put()
         self.redirect('/')
         
+class AjaxHandler(VoterPage):
+    def post(self):
+        status = self.validate()
+        if status:
+            self.response.out.write(status)
+            return
+
+        name = self.request.get('name')
+        value = self.request.get('value')
+        if name == 'anonymous':
+            self.ballot.anonymous = (value == 'on')
+            self.ballot.put()
+
+        if name == 'preamble':
+            self.ballot.preamble = value
+            self.ballot.put()
+
+        if name == 'postamble':
+            self.ballot.postamble = value
+            self.ballot.put()
+
 
 application = webapp.WSGIApplication([('/', MainPage),
                                       ('/profile/', ProfilePage),
                                       ('/admin/', AdminPage),
+                                      ('/ajax/', AjaxHandler),
                                       ], debug=True)
 
 def main():

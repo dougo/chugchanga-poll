@@ -10,6 +10,9 @@ handlers:
 - url: /profile/
   script: main.py
   login: required
+- url: /ajax/
+  script: main.py
+  login: required
 - url: /admin/
   script: main.py
   login: admin

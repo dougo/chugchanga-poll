@@ -3,15 +3,24 @@
 
 <p>
 <script src="/static/prototype.js" type="text/javascript"></script>
+<script language="JavaScript">
+function save(id) {
+  $(id + 'Status').update("Saving...");
+  new Ajax.Updater(id + 'Status', '/ajax/',
+                   { parameters: { name: id, value: $F(id) }});
+}
+</script>
 
 <form action="." method="post">
   Anonymous:
-  <input type="checkbox" name="anonymous"
+  <input type="checkbox" name="anonymous" id="anonymous"
 	 {% if ballot.anonymous %} checked {% endif %}
-	 onclick="">
+	 onclick="javascript:save('anonymous')">
+  <span id="anonymousStatus"></span>
   <br><br>
-  Opening comments:<br>
-  <textarea name="preamble"
+  Opening comments: <span id="preambleStatus"></span><br>
+  <textarea name="preamble" id="preamble"
+	    onchange="javascript:save('preamble')"
 	    rows="4" cols="90">{{ ballot.preamble }}</textarea><br><br>
 
   <input type="hidden" name="votes" value="{{ votes.vote.count }}">
@@ -47,7 +56,8 @@
   </button>
   <br>
 
-  <br>Closing comments:<br>
-  <textarea name="postamble"
+  <br>Closing comments: <span id="postambleStatus"></span><br>
+  <textarea name="postamble" id="postamble"
+	    onchange="javascript:save('postamble')"
 	    rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
 </form>
