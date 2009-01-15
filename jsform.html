@@ -14,12 +14,6 @@ function save(id) {
 </script>
 
 <form action="." method="post">
-  Anonymous:
-  <input type="checkbox" name="anonymous" id="anonymous"
-	 {% if ballot.anonymous %} checked {% endif %}
-	 onclick="javascript:save('anonymous')">
-  <span id="anonymousStatus"></span>
-  <br><br>
   Opening comments: <span id="preambleStatus"></span><br>
   <textarea name="preamble" id="preamble"
 	    onchange="javascript:save('preamble')"
@@ -62,4 +56,10 @@ function save(id) {
   <textarea name="postamble" id="postamble"
 	    onchange="javascript:save('postamble')"
 	    rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
+  <br>
+  Anonymous:
+  <input type="checkbox" name="anonymous" id="anonymous"
+	 {% if ballot.anonymous %} checked {% endif %}
+	 onclick="javascript:save('anonymous')">
+  <span id="anonymousStatus"></span>
 </form>
