@@ -17,7 +17,7 @@ function save(id) {
   Opening comments: <span id="preambleStatus"></span><br>
   <textarea name="preamble" id="preamble"
 	    onchange="javascript:save('preamble')"
-	    rows="4" cols="90">{{ ballot.preamble }}</textarea><br><br>
+	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea><br><br>
 
   <input type="hidden" name="votes" value="{{ votes.vote.count }}">
   {% for vote in votes.vote %}
@@ -55,7 +55,7 @@ function save(id) {
   <br>Closing comments: <span id="postambleStatus"></span><br>
   <textarea name="postamble" id="postamble"
 	    onchange="javascript:save('postamble')"
-	    rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
+	    rows="4" cols="90">{{ ballot.postamble|escape }}</textarea><br>
   <br>
   Anonymous:
   <input type="checkbox" name="anonymous" id="anonymous"

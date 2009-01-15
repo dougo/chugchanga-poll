@@ -6,7 +6,7 @@
   <input type="submit" value="Save changes"><br><br>
   Opening comments:<br>
   <textarea name="preamble"
-	    rows="4" cols="90">{{ ballot.preamble }}</textarea><br><br>
+	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea><br><br>
 
   <input type="hidden" name="votes" value="{{ votes.vote.count }}">
   {% for vote in votes.vote %}
@@ -43,7 +43,7 @@
 
   <br>Closing comments:<br>
   <textarea name="postamble"
-	    rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
+	    rows="4" cols="90">{{ ballot.postamble|escape }}</textarea><br>
   <input type="submit" value="Save changes">
 
   <br>
