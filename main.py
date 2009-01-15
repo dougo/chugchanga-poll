@@ -124,10 +124,11 @@ class MainPage(VoterPage):
             self.voter.put()
 
         if not self.ballot:
-            self.ballot = Ballot(voter=self.voter, year=self.year)
+            self.ballot = Ballot(parent=self.voter, voter=self.voter,
+                                 year=self.year)
             self.ballot.put()
             for rank in range(1, 21):
-                vote = Vote(ballot=self.ballot, rank=rank)
+                vote = Vote(parent=self.ballot, ballot=self.ballot, rank=rank)
                 vote.put()
 
         votes = dict()
@@ -151,16 +152,24 @@ class MainPage(VoterPage):
         if not self.validate():
             return
 
+        votes = set(self.ballot.vote_set)
+        addCat = self.request.get('add')
+        db.run_in_transaction(self.update, votes, addCat)
+        if addCat:
+            self.redirect(self.request.uri + "#" + addCat)
+        else:
+            self.redirect(self.request.uri)
+
+    def update(self, votes, addCat):
         # Delete the old ballot and votes and replace them with the
         # request data.  This avoids cases where the form data doesn't
         # match the current database (e.g. from the back button or a
         # cloned window).
-        # TO DO: do this in a transaction!
         if self.ballot:
-            db.delete(self.ballot.vote_set)
+            db.delete(votes)
             self.ballot.delete()
 
-        ballot = Ballot(voter=self.voter, year=self.year)
+        ballot = Ballot(parent=self.voter, voter=self.voter, year=self.year)
         if self.request.get('anonymous'):
             ballot.anonymous = True
         ballot.preamble = self.request.get('preamble')
@@ -171,19 +180,18 @@ class MainPage(VoterPage):
         for cat in ['vote', 'mention', 'note']:
             numVotes[cat] = int(self.request.get(cat + 's'))
             for rank in range(1, numVotes[cat]+1):
-                vote = Vote(ballot=ballot, category=cat, rank=rank)
+                vote = Vote(parent=ballot, ballot=ballot,
+                            category=cat, rank=rank)
                 vote.artist = self.request.get('%s%dartist' % (cat, rank))
                 vote.release = self.request.get('%s%drelease' % (cat, rank))
                 vote.comments = self.request.get('%s%dcomments' % (cat, rank))
                 vote.put()
-        cat = self.request.get('add')
-        if cat:
+
+        if addCat:
             # Add ten more votes in the requested category.
-            for rank in range(numVotes[cat]+1, numVotes[cat]+11):
-                Vote(ballot=ballot, category=cat, rank=rank).put()
-            self.redirect(self.request.uri + "#" + cat)
-        else:
-            self.redirect(self.request.uri)
+            for rank in range(numVotes[addCat]+1, numVotes[addCat]+11):
+                Vote(parent=ballot, ballot=ballot,
+                     category=addCat, rank=rank).put()
 
     def frontPage(self):
         user = users.get_current_user()
