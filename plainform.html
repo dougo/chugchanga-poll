@@ -4,10 +4,6 @@
 <p>
 <form action="." method="post">
   <input type="submit" value="Save changes"><br><br>
-  Anonymous:
-  <input type="checkbox" name="anonymous"
-	 {% if ballot.anonymous %} checked {% endif %}>
-  <br><br>
   Opening comments:<br>
   <textarea name="preamble"
 	    rows="4" cols="90">{{ ballot.preamble }}</textarea><br><br>
@@ -49,4 +45,9 @@
   <textarea name="postamble"
 	    rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
   <input type="submit" value="Save changes">
+
+  <br>
+  Anonymous:
+  <input type="checkbox" name="anonymous"
+	 {% if ballot.anonymous %} checked {% endif %}>
 </form>
