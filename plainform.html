@@ -44,10 +44,10 @@
   <br>Closing comments:<br>
   <textarea name="postamble"
 	    rows="4" cols="90">{{ ballot.postamble|escape }}</textarea><br>
-  <input type="submit" value="Save changes">
-
   <br>
   Anonymous:
   <input type="checkbox" name="anonymous"
 	 {% if ballot.anonymous %} checked {% endif %}>
+  <br><br><br>
+  <input type="submit" value="Save changes">
 </form>
