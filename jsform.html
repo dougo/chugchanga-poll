@@ -30,23 +30,23 @@ function makeVoteFields(category, vote) {
     id: prefix + "artist", size: 20, value: vote.artist,
     onchange: "saveVote('" + category + "', " + vote.rank + ", 'artist')",
   });
-  release = new Element('input', {
-    id: prefix + "release", size: 40, value: vote.release,
-    onchange: "saveVote('" + category + "', " + vote.rank + ", 'release')",
+  title = new Element('input', {
+    id: prefix + "title", size: 40, value: vote.title,
+    onchange: "saveVote('" + category + "', " + vote.rank + ", 'title')",
   });
   comments = new Element('textarea', {
     id: prefix + "comments", rows: 2, cols: 90,
     onchange: "saveVote('" + category + "', " + vote.rank + ", 'comments')",
   }).insert(vote.comments);
   return new Element('div').insert(vote.rank + ". Artist: ").insert(artist)
-    .insert(" Release: ").insert(release).insert(new Element('br'))
+    .insert(" Title: ").insert(title).insert(new Element('br'))
     .insert(comments).insert(new Element('br'));
 }
 
 function addVote(category) {
   save("add" + category, { field: "add", category: category });
   vote = { rank: votes[category].length + 1,
-           artist: "", release: "", comments: "" };
+           artist: "", title: "", comments: "" };
   votes[category].push(vote);
   $(category).insert(makeVoteFields(category, vote));
 }

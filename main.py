@@ -43,30 +43,38 @@ class Vote(db.Model):
     category = db.StringProperty(default='vote') # vote, mention, or note
     rank = db.IntegerProperty(required=True) # 1-based rank within category
     artist = db.StringProperty(default='')
-    release = db.StringProperty(default='')
+    title = db.StringProperty(default='')
     comments = db.TextProperty(default='')
 
     def toDict(self):
         return { 'rank': self.rank,
                  'artist': self.artist,
-                 'release': self.release,
+                 'title': self.title,
                  'comments': self.comments }
 
-
+# Base class for voter pages.
 class VoterPage(webapp.RequestHandler):
+    # Returns:
+    #  'invalid': if the user has not entered the secret word
+    #  'closed': if there are no poll years currently open
+    #  None: otherwise
+    # Sets instance variables:
+    #  logout: URL
+    #  voter: Voter
+    #  years: list of Years (ints) whose polls are open
+    #  year: year (int) currently being voted on by voter
+    #  ballot: Ballot for current voter and year, or None
     def validate(self):
         user = users.get_current_user()
         self.logout = users.create_logout_url(self.request.uri)
 
         self.voter = Voter.gql("WHERE user = :1", user).get()
         if not self.voter:
-            # User hasn't entered the secret word.
             return 'invalid'
 
         self.years = map(lambda y: y.year,
                          Year.gql("WHERE votingIsOpen = True ORDER BY year"))
         if not self.years:
-            # No polls are open.
             return 'closed'
         defaultYear = max(self.years)
         self.year = int(self.request.get('year') or self.voter.year
@@ -82,6 +90,10 @@ class VoterPage(webapp.RequestHandler):
         return None
 
 class MainPage(VoterPage):
+    # Returns:
+    #  False: and displays the front page if the user hasn't entered
+    #    the secret word, or the closed page if no polls are open
+    #  True: otherwise
     def validate(self):
         status = VoterPage.validate(self)
         if status == 'invalid':
@@ -121,7 +133,6 @@ class MainPage(VoterPage):
         self.years.remove(self.year)
         if not self.voter.wantsPlain:
             votes = simplejson.dumps(votes, indent=4)
-
         template_values = {
             'logout': self.logout,
             'year': self.year,
@@ -166,7 +177,7 @@ class MainPage(VoterPage):
                 vote = Vote(parent=ballot, ballot=ballot,
                             category=cat, rank=rank)
                 vote.artist = self.request.get('%s%dartist' % (cat, rank))
-                vote.release = self.request.get('%s%drelease' % (cat, rank))
+                vote.title = self.request.get('%s%dtitle' % (cat, rank))
                 vote.comments = self.request.get('%s%dcomments' % (cat, rank))
                 vote.put()
 
@@ -242,8 +253,8 @@ class AjaxHandler(VoterPage):
                             self.ballot, category, int(rank)).get()
             if field == 'artist':
                 vote.artist = value
-            if field == 'release':
-                vote.release = value
+            if field == 'title':
+                vote.title = value
             if field == 'comments':
                 vote.comments = value
             vote.put()
