@@ -274,6 +274,7 @@ class AjaxHandler(VoterPage):
         status = self.validate()
         if status:
             self.response.out.write(status)
+            self.response.set_status(401) # Unauthorized
             return
 
         field = self.request.get('field')
