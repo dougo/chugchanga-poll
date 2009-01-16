@@ -3,9 +3,6 @@
   <body>
     <p>Hello, {{ voter.name }}!
       <small>(<a href="{{ logout }}">login as a different user</a>)</small>
-      {% if admin %}
-        <small>(<a href="/admin/">administrate</a>)</small>
-      {% endif %}
     <p>
       <form action="/profile/" method="post">
 	Full name: <input name="name" value="{{ voter.name }}"><br>

@@ -24,36 +24,6 @@ class Year(db.Model):
     year = db.IntegerProperty(required=True)
     votingIsOpen = db.BooleanProperty(default=True)
 
-class AdminPage(webapp.RequestHandler):
-    def get(self):
-        user = users.get_current_user()
-        logout = users.create_logout_url(self.request.uri)
-        secret = secretWord()
-        years = Year.all()
-        years.order('-year')
-        path = os.path.join(os.path.dirname(__file__), 'admin.html')
-        template_values = {
-            'user': user,
-            'secret': secret,
-            'years': years,
-            'logout': logout
-            }
-        self.response.out.write(template.render(path, template_values))
-        
-    def post(self):
-        globals = Globals.all().get() or Globals()
-        globals.secretWord = self.request.get('secret')
-        globals.put()
-        for y in Year.all():
-            y.votingIsOpen = (self.request.get('year' + str(y.year)) == 'on')
-            y.put()
-        addYear = self.request.get('addYear')
-        if addYear:
-            Year(year=int(addYear)).put()
-            self.redirect('.')
-        else:
-            self.redirect('/')
-
 class Voter(db.Model):
     user = db.UserProperty(required=True)
     name = db.StringProperty(required=True)
@@ -153,7 +123,6 @@ class MainPage(VoterPage):
             votes = simplejson.dumps(votes, indent=4)
 
         template_values = {
-            'admin': users.is_current_user_admin(),
             'logout': self.logout,
             'year': self.year,
             'other_years': self.years,
@@ -218,7 +187,6 @@ class MainPage(VoterPage):
         path = os.path.join(os.path.dirname(__file__), 'front.html')
         template_values = {
             'user': user,
-            'admin': users.is_current_user_admin(),
             'name': name,
             'secret': secret,
             'logout': self.logout
@@ -229,7 +197,6 @@ class MainPage(VoterPage):
         path = os.path.join(os.path.dirname(__file__), 'closed.html')
         template_values = {
             'voter': self.voter,
-            'admin': users.is_current_user_admin(),
             'logout': self.logout
             }
         self.response.out.write(template.render(path, template_values))
@@ -294,7 +261,6 @@ class AjaxHandler(VoterPage):
 
 application = webapp.WSGIApplication([('/', MainPage),
                                       ('/profile/', ProfilePage),
-                                      ('/admin/', AdminPage),
                                       ('/ajax/', AjaxHandler),
                                       ], debug=True)
 

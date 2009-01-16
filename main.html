@@ -4,9 +4,6 @@
     <p>Hello, {{ ballot.voter.name }}!
       <small>(<a href="/profile/">edit your profile</a>)</small>
       <small>(<a href="{{ logout }}">login as a different user</a>)</small>
-      {% if admin %}
-        <small>(<a href="/admin/">administrate</a>)</small>
-      {% endif %}
     <p>Welcome to the Chugchanga-L Poll.  Enter up to 20 of your
       favorite releases of {{ year }}
       {% if other_years %}
