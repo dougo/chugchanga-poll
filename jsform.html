@@ -10,12 +10,26 @@ Also, consider
 // <![CDATA[
 
 function save(id, parameters) {
-  style = "font-family: sans-serif; font-size: smaller; " +
-          "color:white; background:red;";
-  if (status = $(id + 'Status'))
-    status.setStyle(style).update("Saving...");
-  new Ajax.Updater(id + 'Status', '/ajax/',
-                   { parameters: parameters });
+  if (status = $(id + 'Status')) {
+    status.setStyle("visibility:visible");
+    status.setAttribute("src", "/static/progress.gif");
+    status.removeAttribute("title");
+  }
+  new Ajax.Request('/ajax/', {
+    parameters: parameters,
+    onSuccess: function(transport) {
+      if (status) {
+        status.setAttribute("src", "/static/ok.gif");
+        setTimeout("$('" + id + "Status').setStyle('visibility:hidden')", 1000);
+      }
+    },
+    onFailure: function(transport) {
+      if (status) {
+        status.setAttribute("src", "/static/error.gif");
+        status.setAttribute("title", transport.responseText);
+      };
+    },
+  });
 }
 
 function saveBallot(id) {
@@ -25,6 +39,13 @@ function saveBallot(id) {
 function saveVote(category, rank, field) {
   id = category + rank + field;
   save(id, { category: category, rank: rank, field: field, value: $F(id) });
+}
+
+function statusImg(id) {
+  return new Element('img', {
+    id: id + "Status", src: "/static/progress.gif",
+    style: "visibility:hidden", align: "top",
+  });
 }
 
 function makeVoteFields(category, vote) {
@@ -42,11 +63,17 @@ function makeVoteFields(category, vote) {
     onchange: "saveVote('" + category + "', " + vote.rank + ", 'comments')",
   }).insert(vote.comments);
   return new Element('div').insert(vote.rank + ". Artist: ").insert(artist)
-    .insert(" Title: ").insert(title).insert(new Element('br'))
-    .insert(comments).insert(new Element('br'));
+    .insert(statusImg(prefix + "artist"))
+    .insert(" Title: ").insert(title)
+    .insert(statusImg(prefix + "title"))
+    .insert(new Element('br'))
+    .insert(comments)
+    .insert(statusImg(prefix + "comments"))
+    .insert(new Element('br'));
 }
 
 function addVote(category) {
+  if (category == "favorite" && votes[category].length == 20) return;
   vote = { rank: votes[category].length + 1,
            artist: "", title: "", comments: "" };
   votes[category].push(vote);
@@ -65,7 +92,9 @@ function addVotes(n, category) {
 
 <form action="." method="post">
   <br><a name="preamble"></a>
-  <h3>Opening comments <span id="preambleStatus"></span></h3>
+  <h3>Opening comments
+    <img id="preambleStatus" src="/static/progress.gif"
+	 style="visibility:hidden" /></h3>
   <textarea name="preamble" id="preamble"
 	    onchange="javascript:saveBallot('preamble')"
 	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea>
@@ -84,7 +113,9 @@ function addVotes(n, category) {
   <div id="notable"></div>
 
   <br><a name="postamble"></a>
-  <h3>Closing comments <span id="postambleStatus"></span></h3>
+  <h3>Closing comments
+    <img id="postambleStatus" src="/static/progress.gif"
+	 style="visibility:hidden" /></h3>
   <textarea name="postamble" id="postamble"
 	    onchange="javascript:saveBallot('postamble')"
 	    rows="4" cols="90">{{ ballot.postamble|escape }}</textarea><br>
@@ -93,7 +124,8 @@ function addVotes(n, category) {
   <input type="checkbox" name="anonymous" id="anonymous"
 	 {% if ballot.anonymous %} checked {% endif %}
 	 onclick="javascript:saveBallot('anonymous')">
-  <span id="anonymousStatus"></span>
+  <img id="anonymousStatus" src="/static/progress.gif"
+       style="visibility:hidden" />
 </form>
 
 <script language="JavaScript">
@@ -115,9 +147,8 @@ for (category in votes) {
     $(category).insert(makeVoteFields(category, voteArray[i]));
   }
   votes[category] = voteArray;
-  if (!(category == "favorite" && voteArray.length == 20))
-    // Add a blank vote at the end.
-    addVote(category);
+  // Add a blank vote at the end.
+  addVote(category);
 }
 
 // ]]>
