@@ -269,3 +269,6 @@ application = webapp.WSGIApplication([('/', MainPage),
 
 def main():
     run_wsgi_app(application)
+
+if __name__ == "__main__":
+    main()
