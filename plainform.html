@@ -3,45 +3,51 @@
 
 <p>
 <form action="." method="post">
-  <input type="submit" value="Save changes"><br><br>
-  Opening comments:<br>
-  <textarea name="preamble"
-	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea><br><br>
+  <input type="submit" value="Save changes"><br>
 
-  <input type="hidden" name="votes" value="{{ votes.vote.count }}">
-  {% for vote in votes.vote %}
+  <br><a name="preamble"></a>
+  <h3>Opening comments</h3>
+  <textarea name="preamble"
+	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea>
+  <br>
+
+  <br><a name="favorite"></a>
+  <h3>Favorite releases</h3>
+  <input type="hidden" name="favorites" value="{{ votes.favorite|length }}">
+  {% for vote in votes.favorite %}
     {% include "vote.html" %}
   {% endfor %}
 
-  <a name="mention"></a>
-  <input type="hidden" name="mentions" value="{{ votes.mention.count }}">
-  {% for vote in votes.mention %}
+  <br><a name="honorable"></a>
+  <input type="hidden" name="honorables" value="{{ votes.honorable|length }}">
+  {% for vote in votes.honorable %}
     {% ifequal forloop.counter 1 %}
-      <br>Honorable mentions:<br>
+      <h3>Honorable mentions</h3>
     {% endifequal %}
     {% include "vote.html" %}
   {% endfor %}
   <br>
-  <button type="submit" name="add" value="mention">
+  <button type="submit" name="add" value="honorable">
     Add honorable mentions...
   </button>
   <br>
 
-  <a name="note"></a>
-  <input type="hidden" name="notes" value="{{ votes.note.count }}">
-  {% for vote in votes.note %}
+  <br><a name="notable"></a>
+  <input type="hidden" name="notables" value="{{ votes.notable|length }}">
+  {% for vote in votes.notable %}
     {% ifequal forloop.counter 1 %}
-      <br>Other notable releases:<br>
+      <h3>Other notable releases</h3>
     {% endifequal %}
     {% include "vote.html" %}
   {% endfor %}
   <br>
-  <button type="submit" name="add" value="note">
+  <button type="submit" name="add" value="notable">
     Add other notable releases...
   </button>
   <br>
 
-  <br>Closing comments:<br>
+  <br><a name="postamble"></a>
+  <h3>Closing comments</h3>
   <textarea name="postamble"
 	    rows="4" cols="90">{{ ballot.postamble|escape }}</textarea><br>
   <br>

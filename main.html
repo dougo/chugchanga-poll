@@ -1,11 +1,16 @@
 <html>
   <head><title>Chugchanga-L Favorite Releases Poll {{ year }}</title></head>
   <body>
-    <p>Hello, {{ ballot.voter.name }}!
+    <p>Hello,
+      {% if ballot.voter.url %}
+        <a href="{{ ballot.voter.url }}">{{ ballot.voter.name }}</a>!
+      {% else %}
+        {{ ballot.voter.name }}!
+      {% endif %}
       <small>(<a href="/profile/">edit your profile</a>)</small>
       <small>(<a href="{{ logout }}">login as a different user</a>)</small>
     <p>Welcome to the Chugchanga-L Poll.  Enter up to 20 of your
-      favorite releases of {{ year }}
+      <a href="#favorite">favorite releases</a> of {{ year }}
       {% if other_years %}
         below, or choose a different year:
         {% for y in other_years %}
@@ -15,14 +20,18 @@
 	below.
       {% endif %}
 
+    <p>You can use HTML in the comment fields below
+      (e.g. <code>&lt;a href="..."&gt;...&lt;/a&gt;</code> for links).
+      Linebreaks will be converted to <code>&lt;br&gt;</code>.
+
     <p>If you have more than 20 favorite releases, enter the rest in
-      the <a href="#mention">honorable mentions</a> section below and
+      the <a href="#honorable">honorable mentions</a> section below and
       they will be counted as tie-breaker votes in the summary
       tabulation.
 
     <p>If there are other releases that you'd like to comment on,
-      enter them in the <a href="#note">other notable releases</a>
-      section below and your comments will appear in the summary, but
+      enter them in the <a href="#notable">other notable releases</a>
+      section below.  Your comments will appear in the summary, but
       they won't be counted as favorites.
 
     <p>

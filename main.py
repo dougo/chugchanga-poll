@@ -37,10 +37,42 @@ class Ballot(db.Model):
     anonymous = db.BooleanProperty(default=False)
     preamble = db.TextProperty(default='')
     postamble = db.TextProperty(default='')
+    honorable = db.IntegerProperty(default=0)
+    notable = db.IntegerProperty(default=0)
+
+    # Returns the ballot's vote with the given category and rank.  If
+    # there is no such vote, a new Vote is returned.  The new Vote is
+    # *not* stored in the database.
+    def getVote(self, category, rank):
+        vote = Vote.gql("WHERE ballot = :1 AND category = :2 AND rank = :3",
+                        self, category, rank).get()
+        if vote:
+            return vote
+        return Vote(parent=self, ballot=self,
+                    category=category, rank=rank)
+
+    # Returns the highest rank of the ballot's votes in the given
+    # category, or zero if there are none.
+    def maxRank(self, category):
+        if category == 'favorite':
+            return 20
+        if category == 'honorable':
+            return self.honorable
+        if category == 'notable':
+            return self.notable
+
+    # Returns an iterable of the ballot's votes in the given category,
+    # in ascending order by rank.
+    def getVotes(self, category):
+        return Vote.gql("WHERE ballot = :1 AND category = :2 ORDER BY rank",
+                        self, category)
+        
+
+categories = ['favorite', 'honorable', 'notable']
 
 class Vote(db.Model):
     ballot = db.ReferenceProperty(Ballot, required=True)
-    category = db.StringProperty(default='vote') # vote, mention, or note
+    category = db.StringProperty(default=categories[0])
     rank = db.IntegerProperty(required=True) # 1-based rank within category
     artist = db.StringProperty(default='')
     title = db.StringProperty(default='')
@@ -89,6 +121,25 @@ class VoterPage(webapp.RequestHandler):
                                  self.voter, self.year).get()
         return None
 
+class ProfilePage(VoterPage):
+    def get(self):
+        if self.validate():
+            return
+        path = os.path.join(os.path.dirname(__file__), 'profile.html')
+        template_values = {
+            'voter': self.voter,
+            'logout': self.logout,
+            }
+        self.response.out.write(template.render(path, template_values))
+        
+    def post(self):
+        if self.validate():
+            return
+        self.voter.name = self.request.get('name') or self.voter.user.nickname()
+        self.voter.url = self.request.get('url')
+        self.voter.put()
+        self.redirect('/')
+        
 class MainPage(VoterPage):
     # Returns:
     #  False: and displays the front page if the user hasn't entered
@@ -104,6 +155,31 @@ class MainPage(VoterPage):
             return False
         return True
 
+    def frontPage(self):
+        user = users.get_current_user()
+        secret = self.request.get('secret')
+        name = self.request.get('name')
+        if secret == secretWord():
+            Voter(user=user, name=name or user.nickname()).put()
+            self.redirect(self.request.uri)
+            return
+        path = os.path.join(os.path.dirname(__file__), 'front.html')
+        template_values = {
+            'user': user,
+            'name': name,
+            'secret': secret,
+            'logout': self.logout
+            }
+        self.response.out.write(template.render(path, template_values))
+
+    def closedPage(self):
+        path = os.path.join(os.path.dirname(__file__), 'closed.html')
+        template_values = {
+            'voter': self.voter,
+            'logout': self.logout
+            }
+        self.response.out.write(template.render(path, template_values))
+
     def get(self):
         if not self.validate():
             return
@@ -117,22 +193,25 @@ class MainPage(VoterPage):
             self.ballot = Ballot(parent=self.voter, voter=self.voter,
                                  year=self.year)
             self.ballot.put()
-            for rank in range(1, 21):
-                vote = Vote(parent=self.ballot, ballot=self.ballot, rank=rank)
-                vote.put()
 
         votes = dict()
-        for category in ['vote', 'mention', 'note']:
-            catVotes = Vote.gql("WHERE ballot = :1 AND category = :2"
-                                " ORDER BY rank", self.ballot, category)
-            if not self.voter.wantsPlain:
-                catVotes = map(Vote.toDict, catVotes)
-            votes[category] = catVotes
+        if self.voter.wantsPlain:
+            # Fill in gaps in the ranking with blank Votes.
+            for category in categories:
+                if category == categories[0]:
+                    max = 20
+                else:
+                    max = self.ballot.maxRank(category)
+                votes[category] = [self.ballot.getVote(category, rank)
+                                   for rank in range(1, max+1)]
+        else:
+            for category in categories:
+                votes[category] = [vote.toDict()
+                                   for vote in self.ballot.getVotes(category)]
+            votes = simplejson.dumps(votes, indent=4)
 
         path = os.path.join(os.path.dirname(__file__), 'main.html')
         self.years.remove(self.year)
-        if not self.voter.wantsPlain:
-            votes = simplejson.dumps(votes, indent=4)
         template_values = {
             'logout': self.logout,
             'year': self.year,
@@ -168,69 +247,28 @@ class MainPage(VoterPage):
             ballot.anonymous = True
         ballot.preamble = self.request.get('preamble')
         ballot.postamble = self.request.get('postamble')
+        numVotes = dict()
+        for cat in categories:
+            numVotes[cat] = int(self.request.get(cat + 's'))
+        ballot.honorable = numVotes['honorable']
+        if addCat == 'honorable':
+            ballot.honorable += 10
+        ballot.notable = numVotes['notable']
+        if addCat == 'notable':
+            ballot.notable += 10
         ballot.put()
 
-        numVotes = dict()
-        for cat in ['vote', 'mention', 'note']:
-            numVotes[cat] = int(self.request.get(cat + 's'))
+        for cat in categories:
             for rank in range(1, numVotes[cat]+1):
-                vote = Vote(parent=ballot, ballot=ballot,
-                            category=cat, rank=rank)
-                vote.artist = self.request.get('%s%dartist' % (cat, rank))
-                vote.title = self.request.get('%s%dtitle' % (cat, rank))
-                vote.comments = self.request.get('%s%dcomments' % (cat, rank))
-                vote.put()
+                artist = self.request.get('%s%dartist' % (cat, rank))
+                title = self.request.get('%s%dtitle' % (cat, rank))
+                comments = self.request.get('%s%dcomments' % (cat, rank))
+                if artist or title or comments:
+                    vote = Vote(parent=ballot, ballot=ballot,
+                                category=cat, rank=rank,
+                                artist=artist, title=title, comments=comments)
+                    vote.put()
 
-        if addCat:
-            # Add ten more votes in the requested category.
-            for rank in range(numVotes[addCat]+1, numVotes[addCat]+11):
-                Vote(parent=ballot, ballot=ballot,
-                     category=addCat, rank=rank).put()
-
-    def frontPage(self):
-        user = users.get_current_user()
-        secret = self.request.get('secret')
-        name = self.request.get('name')
-        if secret == secretWord():
-            Voter(user=user, name=name or user.nickname()).put()
-            self.redirect(self.request.uri)
-            return
-        path = os.path.join(os.path.dirname(__file__), 'front.html')
-        template_values = {
-            'user': user,
-            'name': name,
-            'secret': secret,
-            'logout': self.logout
-            }
-        self.response.out.write(template.render(path, template_values))
-
-    def closedPage(self):
-        path = os.path.join(os.path.dirname(__file__), 'closed.html')
-        template_values = {
-            'voter': self.voter,
-            'logout': self.logout
-            }
-        self.response.out.write(template.render(path, template_values))
-
-class ProfilePage(VoterPage):
-    def get(self):
-        if self.validate():
-            return
-        path = os.path.join(os.path.dirname(__file__), 'profile.html')
-        template_values = {
-            'voter': self.voter,
-            'logout': self.logout,
-            }
-        self.response.out.write(template.render(path, template_values))
-        
-    def post(self):
-        if self.validate():
-            return
-        self.voter.name = self.request.get('name') or self.voter.user.nickname()
-        self.voter.url = self.request.get('url')
-        self.voter.put()
-        self.redirect('/')
-        
 class AjaxHandler(VoterPage):
     def post(self):
         status = self.validate()
@@ -242,22 +280,26 @@ class AjaxHandler(VoterPage):
         value = self.request.get('value')
         category = self.request.get('category')
         rank = self.request.get('rank')
+        rank = int(rank) if rank else 0
 
-        if field == 'add':
-            count = Vote.gql("WHERE ballot = :1 AND category = :2",
-                             self.ballot, category).count()
-            Vote(parent=self.ballot, ballot=self.ballot,
-                 category=category, rank=count+1).put()
-        elif category:
-            vote = Vote.gql("WHERE ballot = :1 AND category = :2 AND rank = :3",
-                            self.ballot, category, int(rank)).get()
+        if category:
+            vote = self.ballot.getVote(category, rank)
             if field == 'artist':
                 vote.artist = value
             if field == 'title':
                 vote.title = value
             if field == 'comments':
                 vote.comments = value
-            vote.put()
+            if vote.artist or vote.title or vote.comments:
+                vote.put()
+                if category == 'honorable' and rank > self.ballot.honorable:
+                    self.ballot.honorable = rank
+                    self.ballot.put()
+                if category == 'notable' and rank > self.ballot.notable:
+                    self.ballot.notable = rank
+                    self.ballot.put()
+            else:
+                vote.delete()
         else:
             if field == 'anonymous':
                 self.ballot.anonymous = (value == 'on')
@@ -266,9 +308,6 @@ class AjaxHandler(VoterPage):
             if field == 'postamble':
                 self.ballot.postamble = value
             self.ballot.put()
-
-
-
 
 application = webapp.WSGIApplication([('/', MainPage),
                                       ('/profile/', ProfilePage),

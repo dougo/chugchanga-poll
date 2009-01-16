@@ -44,11 +44,13 @@ function makeVoteFields(category, vote) {
 }
 
 function addVote(category) {
-  save("add" + category, { field: "add", category: category });
   vote = { rank: votes[category].length + 1,
            artist: "", title: "", comments: "" };
   votes[category].push(vote);
-  $(category).insert(makeVoteFields(category, vote));
+  fields = makeVoteFields(category, vote);
+  fields.setAttribute("onkeypress", "addVote('" + category +
+                                    "'); this.removeAttribute('onkeypress')");
+  $(category).insert(fields);
 }
 
 function addVotes(n, category) {
@@ -59,30 +61,27 @@ function addVotes(n, category) {
 </script>
 
 <form action="." method="post">
-  Opening comments: <span id="preambleStatus"></span><br>
+  <br><a name="preamble"></a>
+  <h3>Opening comments <span id="preambleStatus"></span></h3>
   <textarea name="preamble" id="preamble"
 	    onchange="javascript:saveBallot('preamble')"
-	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea><br><br>
-
-  <div id="vote"></div>
-
-  <a name="mention"></a>
-  <br>Honorable mentions:<br>
-  <div id="mention"></div>
-  <br>
-  <input type="button" value="Add honorable mentions..."
-	  onclick="addVotes(10, 'mention')">
+	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea>
   <br>
 
-  <a name="note"></a>
-  <br>Other notable releases:<br>
-  <div id="note"></div>
-  <br>
-  <input type="button" value="Add other notable releases..."
-	  onclick="addVotes(10, 'note')">
-  <br>
+  <br><a name="favorite"></a>
+  <h3>Favorite releases</h3>
+  <div id="favorite"></div>
 
-  <br>Closing comments: <span id="postambleStatus"></span><br>
+  <br><a name="honorable"></a>
+  <h3>Honorable mentions</h3>
+  <div id="honorable"></div>
+
+  <br><a name="notable"></a>
+  <h3>Other notable releases</h3>
+  <div id="notable"></div>
+
+  <br><a name="postamble"></a>
+  <h3>Closing comments <span id="postambleStatus"></span></h3>
   <textarea name="postamble" id="postamble"
 	    onchange="javascript:saveBallot('postamble')"
 	    rows="4" cols="90">{{ ballot.postamble|escape }}</textarea><br>
@@ -99,9 +98,24 @@ function addVotes(n, category) {
 
 votes = {{ votes }};
 
-for (category in votes)
-  for (i = 0; i < votes[category].length; i++)
-    $(category).insert(makeVoteFields(category, votes[category][i]));
+for (category in votes) {
+  voteList = votes[category];
+  voteArray = new Array();
+  for (i = 0; i < voteList.length; i++) {
+    vote = voteList[i];
+    voteArray[vote.rank-1] = vote;
+  }
+  // Fill the gaps in the ranking with empty votes.
+  for (i = 0; i < voteArray.length; i++) {
+    if (!voteArray[i])
+      voteArray[i] = { rank: i+1, artist: "", title: "", comments: "" };
+    $(category).insert(makeVoteFields(category, voteArray[i]));
+  }
+  votes[category] = voteArray;
+  if (!(category == "favorite" && voteArray.length == 20))
+    // Add a blank vote at the end.
+    addVote(category);
+}
 
 // ]]>
 </script>
