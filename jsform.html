@@ -6,24 +6,37 @@
 <script language="JavaScript">
 // <![CDATA[
 
-function save(id) {
+function save(id, parameters) {
   style = "font-family: sans-serif; font-size: smaller; " +
           "color:white; background:red;";
-  $(id + 'Status').setStyle(style).update("Saving...");
+  if (status = $(id + 'Status'))
+    status.setStyle(style).update("Saving...");
   new Ajax.Updater(id + 'Status', '/ajax/',
-                   { parameters: { name: id, value: $F(id) }});
+                   { parameters: parameters });
+}
+
+function saveBallot(id) {
+  save(id, { field: id, value: $F(id) });
+}
+
+function saveVote(category, rank, field) {
+  id = category + rank + field;
+  save(id, { category: category, rank: rank, field: field, value: $F(id) });
 }
 
 function makeVoteFields(category, vote) {
   prefix = category + vote.rank;
   artist = new Element('input', {
-    name: prefix + "artist", size: 20, value: vote.artist
+    id: prefix + "artist", size: 20, value: vote.artist,
+    onchange: "saveVote('" + category + "', " + vote.rank + ", 'artist')",
   });
   release = new Element('input', {
-    name: prefix + "release", size: 40, value: vote.release
+    id: prefix + "release", size: 40, value: vote.release,
+    onchange: "saveVote('" + category + "', " + vote.rank + ", 'release')",
   });
   comments = new Element('textarea', {
-    name: prefix + "comments", rows: 2, cols: 90
+    id: prefix + "comments", rows: 2, cols: 90,
+    onchange: "saveVote('" + category + "', " + vote.rank + ", 'comments')",
   }).insert(vote.comments);
   return new Element('div').insert(vote.rank + ". Artist: ").insert(artist)
     .insert(" Release: ").insert(release).insert(new Element('br'))
@@ -31,6 +44,7 @@ function makeVoteFields(category, vote) {
 }
 
 function addVote(category) {
+  save("add" + category, { field: "add", category: category });
   vote = { rank: votes[category].length + 1,
            artist: "", release: "", comments: "" };
   votes[category].push(vote);
@@ -47,7 +61,7 @@ function addVotes(n, category) {
 <form action="." method="post">
   Opening comments: <span id="preambleStatus"></span><br>
   <textarea name="preamble" id="preamble"
-	    onchange="javascript:save('preamble')"
+	    onchange="javascript:saveBallot('preamble')"
 	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea><br><br>
 
   <div id="vote"></div>
@@ -70,31 +84,20 @@ function addVotes(n, category) {
 
   <br>Closing comments: <span id="postambleStatus"></span><br>
   <textarea name="postamble" id="postamble"
-	    onchange="javascript:save('postamble')"
+	    onchange="javascript:saveBallot('postamble')"
 	    rows="4" cols="90">{{ ballot.postamble|escape }}</textarea><br>
   <br>
   Anonymous:
   <input type="checkbox" name="anonymous" id="anonymous"
 	 {% if ballot.anonymous %} checked {% endif %}
-	 onclick="javascript:save('anonymous')">
+	 onclick="javascript:saveBallot('anonymous')">
   <span id="anonymousStatus"></span>
 </form>
 
 <script language="JavaScript">
 // <![CDATA[
 
-votes = {
-  {% for category in votes.items %}
-    {{ category.0 }}: [
-      {% for vote in category.1 %}
-        { rank: "{{ vote.rank }}",
-          artist: "{{ vote.artist|escape }}",
-          release: "{{ vote.release|escape }}",
-          comments: "{{ vote.comments|escape }}" },
-      {% endfor %}
-    ],
-  {% endfor %}
-};
+votes = {{ votes }};
 
 for (category in votes)
   for (i = 0; i < votes[category].length; i++)

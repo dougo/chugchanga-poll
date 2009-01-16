@@ -8,6 +8,7 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+from django.utils import simplejson
 
 # Globals is a singleton class whose instance hold global values.
 class Globals(db.Model):
@@ -75,6 +76,13 @@ class Vote(db.Model):
     release = db.StringProperty(default='')
     comments = db.TextProperty(default='')
 
+    def toDict(self):
+        return { 'rank': self.rank,
+                 'artist': self.artist,
+                 'release': self.release,
+                 'comments': self.comments }
+
+
 class VoterPage(webapp.RequestHandler):
     def validate(self):
         user = users.get_current_user()
@@ -133,11 +141,17 @@ class MainPage(VoterPage):
 
         votes = dict()
         for category in ['vote', 'mention', 'note']:
-            votes[category] = Vote.gql("WHERE ballot = :1 AND category = :2"
-                                       " ORDER BY rank", self.ballot, category)
+            catVotes = Vote.gql("WHERE ballot = :1 AND category = :2"
+                                " ORDER BY rank", self.ballot, category)
+            if not self.voter.wantsPlain:
+                catVotes = map(Vote.toDict, catVotes)
+            votes[category] = catVotes
 
         path = os.path.join(os.path.dirname(__file__), 'main.html')
         self.years.remove(self.year)
+        if not self.voter.wantsPlain:
+            votes = simplejson.dumps(votes, indent=4)
+
         template_values = {
             'admin': users.is_current_user_admin(),
             'logout': self.logout,
@@ -246,19 +260,36 @@ class AjaxHandler(VoterPage):
             self.response.out.write(status)
             return
 
-        name = self.request.get('name')
+        field = self.request.get('field')
         value = self.request.get('value')
-        if name == 'anonymous':
-            self.ballot.anonymous = (value == 'on')
+        category = self.request.get('category')
+        rank = self.request.get('rank')
+
+        if field == 'add':
+            count = Vote.gql("WHERE ballot = :1 AND category = :2",
+                             self.ballot, category).count()
+            Vote(parent=self.ballot, ballot=self.ballot,
+                 category=category, rank=count+1).put()
+        elif category:
+            vote = Vote.gql("WHERE ballot = :1 AND category = :2 AND rank = :3",
+                            self.ballot, category, int(rank)).get()
+            if field == 'artist':
+                vote.artist = value
+            if field == 'release':
+                vote.release = value
+            if field == 'comments':
+                vote.comments = value
+            vote.put()
+        else:
+            if field == 'anonymous':
+                self.ballot.anonymous = (value == 'on')
+            if field == 'preamble':
+                self.ballot.preamble = value
+            if field == 'postamble':
+                self.ballot.postamble = value
             self.ballot.put()
 
-        if name == 'preamble':
-            self.ballot.preamble = value
-            self.ballot.put()
 
-        if name == 'postamble':
-            self.ballot.postamble = value
-            self.ballot.put()
 
 
 application = webapp.WSGIApplication([('/', MainPage),
