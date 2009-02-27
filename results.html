@@ -1,0 +1,14 @@
+<html>
+  <head><title>Chugchanga-L Favorite Releases Poll Results</title></head>
+  <body>
+    <h1><hr>Chugchanga-L Favorite Releases Poll Results</h1>
+
+    <p>
+      {% for b in ballots %}
+        {{ b.0.year }}{% if b.0.votingIsOpen %} (voting is open){% endif %}:
+        <a href="?year={{ b.0.year }}">
+	  {{ b.1.count }} ballot{{ b.1.count|pluralize }}
+	</a> <br>
+      {% endfor %}
+  </body>
+</html>

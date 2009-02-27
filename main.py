@@ -310,9 +310,22 @@ class AjaxHandler(VoterPage):
                 self.ballot.postamble = value
             self.ballot.put()
 
+class ResultsPage(webapp.RequestHandler):
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'results.html')
+        years = Year.gql("ORDER BY year DESC")
+        ballots = [(y, Ballot.gql("WHERE year = :1", y.year)) for y in years]
+        # TO DO: filter out empty ballots
+        template_values = {
+            'ballots': ballots,
+            }
+        self.response.out.write(template.render(path, template_values))
+
+
 application = webapp.WSGIApplication([('/', MainPage),
                                       ('/profile/', ProfilePage),
                                       ('/ajax/', AjaxHandler),
+                                      ('/results/', ResultsPage),
                                       ], debug=True)
 
 def main():
