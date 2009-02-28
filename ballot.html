@@ -9,14 +9,26 @@
     {% if ballot.preamble %}
       <p>{{ ballot.preamble|linebreaksbr }}
     {% endif %}
-    <p>
+    <p><ol>
     {% for v in votes.favorite %}
-      {{ v.rank }}. <strong>{{ v.artist }}</strong>, <cite>{{ v.title }}</cite>
-      <br>
-      {% if v.comments %}
-        {{ v.comments|linebreaksbr }}<br>
-      {% endif %}
-    {% endfor %}
+      {% include "vote-view.html" %}
+    {% endfor %}</ol>
+    {% if votes.honorable %}
+      <h3>Honorable mentions</h3>
+      <ol>
+	{% for v in votes.honorable %}
+          {% include "vote-view.html" %}
+	{% endfor %}
+      </ol>
+    {% endif %}
+    {% if votes.notable %}
+      <h3>Other notable releases</h3>
+      <ol>
+	{% for v in votes.notable %}
+	  {% include "vote-view.html" %}
+	{% endfor %}
+      </ol>
+    {% endif %}
     {% if ballot.postamble %}
       <p>{{ ballot.postamble|linebreaksbr }}
     {% endif %}
