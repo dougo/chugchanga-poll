@@ -15,5 +15,7 @@ handlers:
   login: required
 - url: /results/
   script: main.py
+- url: /ballot/.*
+  script: main.py
 - url: /static
   static_dir: static

@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <title>
+      {{ name }}'s Favorite Releases of {{ ballot.year }}
+    </title>
+  </head>
+  <body>
+    <h1><hr>{{ name }}'s Favorite Releases of {{ ballot.year }}</h1>
+    {% if ballot.preamble %}
+      <p>{{ ballot.preamble|linebreaksbr }}
+    {% endif %}
+    <p>
+    {% for v in votes.favorite %}
+      {{ v.rank }}. <strong>{{ v.artist }}</strong>, <cite>{{ v.title }}</cite>
+      <br>
+      {% if v.comments %}
+        {{ v.comments|linebreaksbr }}<br>
+      {% endif %}
+    {% endfor %}
+    {% if ballot.postamble %}
+      <p>{{ ballot.postamble|linebreaksbr }}
+    {% endif %}
+  </body>
+</html>

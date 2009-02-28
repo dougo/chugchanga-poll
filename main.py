@@ -321,11 +321,32 @@ class ResultsPage(webapp.RequestHandler):
             }
         self.response.out.write(template.render(path, template_values))
 
+class BallotPage(webapp.RequestHandler):
+    def get(self, key):
+        path = os.path.join(os.path.dirname(__file__), 'ballot.html')
+        ballot = Ballot.get(key)
+        if not ballot:
+            self.response.out.write("No such ballot: " + key)
+            return
+        name = "Anonymous Chugchanga Member #" + str(ballot.key().id()) \
+            if ballot.anonymous else ballot.voter.name
+        votes = dict()
+        for category in categories:
+            votes[category] = [vote.toDict()
+                               for vote in ballot.getVotes(category)]
+        template_values = {
+            'name': name,
+            'ballot': ballot,
+            'votes': votes
+            }
+        self.response.out.write(template.render(path, template_values))
+        
 
 application = webapp.WSGIApplication([('/', MainPage),
                                       ('/profile/', ProfilePage),
                                       ('/ajax/', AjaxHandler),
                                       ('/results/', ResultsPage),
+                                      ('/ballot/([^/]+)/', BallotPage),
                                       ], debug=True)
 
 def main():
