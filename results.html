@@ -8,15 +8,9 @@
         {{ b.0.year }}{% if b.0.votingIsOpen %} (voting is open){% endif %}:
         {{ b.1|length }} ballot{{ b.1|length|pluralize }}<br>
         {% for b in b.1 %}
-          <a href="../ballot/{{ b.0.key }}/">
-	    {% if b.0.anonymous %}Anonymous Ballot {{ b.0.key.id }}{% else %}
-	    {{ b.0.voter.name }}{% endif %}</a>:
-	  {{ b.1.favorite.count }}
-	  favorite{{ b.1.favorite.count|pluralize }},
-	  {{ b.1.honorable.count }}
-	  honorable mention{{ b.1.honorable.count|pluralize }},
-	  {{ b.1.notable.count }}
-	  other notable release{{ b.1.notable.count|pluralize }}
+          <a href="../ballot/{{ b.key }}/">
+	    {% if b.anonymous %}Anonymous Ballot {{ b.key.id }}{% else %}
+	    {{ b.voter.name }}{% endif %}</a>
 	  <br>
         {% endfor %}
     {% endfor %}

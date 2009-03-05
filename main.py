@@ -3,6 +3,7 @@
 
 import os
 import cgi
+import itertools
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -24,6 +25,14 @@ class Year(db.Model):
     year = db.IntegerProperty(required=True)
     votingIsOpen = db.BooleanProperty(default=True)
 
+    # Returns a Query for all ballots for this year.
+    def ballots(self):
+        return Ballot.gql("WHERE year = :1", self.year)
+
+    # Returns a Query for all non-empty ballots for this year.
+    def nonEmptyBallots(self):
+        return itertools.ifilterfalse(Ballot.isEmpty, self.ballots())
+
 class Voter(db.Model):
     user = db.UserProperty(required=True)
     name = db.StringProperty(required=True)
@@ -39,6 +48,10 @@ class Ballot(db.Model):
     postamble = db.TextProperty(default='')
     honorable = db.IntegerProperty(default=0)
     notable = db.IntegerProperty(default=0)
+
+    # Returns True iff the ballot has no votes.
+    def isEmpty(self):
+        return self.vote_set.count() == 0
 
     # Returns the ballot's vote with the given category and rank.  If
     # there is no such vote, a new Vote is returned.  The new Vote is
@@ -322,9 +335,7 @@ class ResultsPage(webapp.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'results.html')
         years = Year.gql("ORDER BY year DESC")
-        ballots = [(y, [(b, b.getVotesDict())
-                        for b in Ballot.gql("WHERE year = :1", y.year)])
-                   for y in years]
+        ballots = [(y, list(y.nonEmptyBallots())) for y in years]
         template_values = {
             'ballots': ballots,
             }
