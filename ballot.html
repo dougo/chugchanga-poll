@@ -13,7 +13,7 @@
     {% for v in votes.favorite %}
       {% include "vote-view.html" %}
     {% endfor %}</ol>
-    {% if votes.honorable %}
+    {% if votes.honorable.count %}
       <h3>Honorable mentions</h3>
       <ol>
 	{% for v in votes.honorable %}
@@ -21,7 +21,7 @@
 	{% endfor %}
       </ol>
     {% endif %}
-    {% if votes.notable %}
+    {% if votes.notable.count %}
       <h3>Other notable releases</h3>
       <ol>
 	{% for v in votes.notable %}
