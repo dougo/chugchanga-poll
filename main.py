@@ -66,7 +66,15 @@ class Ballot(db.Model):
     def getVotes(self, category):
         return Vote.gql("WHERE ballot = :1 AND category = :2 ORDER BY rank",
                         self, category)
-        
+
+    # Returns a dict mapping categories to iterables of the ballot's
+    # votes for that category.
+    def getVotesDict(self):
+        votes = dict()
+        for category in categories:
+            votes[category] = self.getVotes(category)
+        return votes
+
 
 categories = ['favorite', 'honorable', 'notable']
 
@@ -314,8 +322,9 @@ class ResultsPage(webapp.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'results.html')
         years = Year.gql("ORDER BY year DESC")
-        ballots = [(y, Ballot.gql("WHERE year = :1", y.year)) for y in years]
-        # TO DO: filter out empty ballots
+        ballots = [(y, [(b, b.getVotesDict())
+                        for b in Ballot.gql("WHERE year = :1", y.year)])
+                   for y in years]
         template_values = {
             'ballots': ballots,
             }
@@ -330,10 +339,7 @@ class BallotPage(webapp.RequestHandler):
             return
         name = "Anonymous Chugchanga Member #" + str(ballot.key().id()) \
             if ballot.anonymous else ballot.voter.name
-        votes = dict()
-        for category in categories:
-            votes[category] = [vote.toDict()
-                               for vote in ballot.getVotes(category)]
+        votes = ballot.getVotesDict()
         template_values = {
             'name': name,
             'ballot': ballot,
