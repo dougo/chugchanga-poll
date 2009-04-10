@@ -4,6 +4,9 @@
 import os
 import cgi
 import itertools
+import urllib
+import urllib2
+from xml.dom import minidom
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -27,7 +30,7 @@ class Year(db.Model):
 
     # Returns a Query for all ballots for this year.
     def ballots(self):
-        return Ballot.gql("WHERE year = :1", self.year)
+        return Ballot.gql('WHERE year = :1', self.year)
 
     # Returns a Query for all non-empty ballots for this year.
     def nonEmptyBallots(self):
@@ -57,7 +60,7 @@ class Ballot(db.Model):
     # there is no such vote, a new Vote is returned.  The new Vote is
     # *not* stored in the database.
     def getVote(self, category, rank):
-        vote = Vote.gql("WHERE ballot = :1 AND category = :2 AND rank = :3",
+        vote = Vote.gql('WHERE ballot = :1 AND category = :2 AND rank = :3',
                         self, category, rank).get()
         if vote:
             return vote
@@ -77,7 +80,7 @@ class Ballot(db.Model):
     # Returns an iterable of the ballot's votes in the given category,
     # in ascending order by rank.
     def getVotes(self, category):
-        return Vote.gql("WHERE ballot = :1 AND category = :2 ORDER BY rank",
+        return Vote.gql('WHERE ballot = :1 AND category = :2 ORDER BY rank',
                         self, category)
 
     # Returns a dict mapping categories to iterables of the ballot's
@@ -89,12 +92,40 @@ class Ballot(db.Model):
         return votes
 
 
+class Artist(db.Model):
+    name = db.StringProperty(required=True)
+    sortname = db.StringProperty(required=True)
+    mbid = db.StringProperty()  # MusicBrainz identifier
+    url = db.LinkProperty()     # other URL, if not in MusicBrainz
+
+    @staticmethod
+    def get(mbid):
+        artist = Artist.gql('WHERE mbid = :1', mbid).get()
+        if not artist:
+            url = 'http://musicbrainz.org/ws/1/artist/' + mbid +'?type=xml'
+            doc = minidom.parse(urllib2.urlopen(url))
+            elt = elementField(doc.documentElement, 'artist')
+            artist = Artist(name=elementFieldValue(elt, 'name'),
+                            sortname=elementFieldValue(elt, 'sort-name'),
+                            mbid=mbid)
+            artist.put()
+        return artist
+
+
+class Release(db.Model):
+    artist = db.ReferenceProperty(Artist, required=True)
+    title = db.StringProperty(required=True)
+    mbid = db.StringProperty()
+    url = db.LinkProperty()
+
+
 categories = ['favorite', 'honorable', 'notable']
 
 class Vote(db.Model):
     ballot = db.ReferenceProperty(Ballot, required=True)
     category = db.StringProperty(default=categories[0])
     rank = db.IntegerProperty(required=True) # 1-based rank within category
+    release = db.ReferenceProperty(Release)
     artist = db.StringProperty(default='')
     title = db.StringProperty(default='')
     comments = db.TextProperty(default='')
@@ -104,6 +135,7 @@ class Vote(db.Model):
                  'artist': self.artist,
                  'title': self.title,
                  'comments': self.comments }
+
 
 # Base class for voter pages.
 class VoterPage(webapp.RequestHandler):
@@ -121,12 +153,12 @@ class VoterPage(webapp.RequestHandler):
         user = users.get_current_user()
         self.logout = users.create_logout_url(self.request.uri)
 
-        self.voter = Voter.gql("WHERE user = :1", user).get()
+        self.voter = Voter.gql('WHERE user = :1', user).get()
         if not self.voter:
             return 'invalid'
 
         self.years = map(lambda y: y.year,
-                         Year.gql("WHERE votingIsOpen = True ORDER BY year"))
+                         Year.gql('WHERE votingIsOpen = True ORDER BY year'))
         if not self.years:
             return 'closed'
         defaultYear = max(self.years)
@@ -138,7 +170,7 @@ class VoterPage(webapp.RequestHandler):
             self.voter.year = self.year
             self.voter.put()
 
-        self.ballot = Ballot.gql("WHERE voter = :1 and year = :2",
+        self.ballot = Ballot.gql('WHERE voter = :1 and year = :2',
                                  self.voter, self.year).get()
         return None
 
@@ -250,7 +282,7 @@ class MainPage(VoterPage):
         addCat = self.request.get('add')
         db.run_in_transaction(self.update, votes, addCat)
         if addCat:
-            self.redirect(self.request.uri + "#" + addCat)
+            self.redirect(self.request.uri + '#' + addCat)
         else:
             self.redirect(self.request.uri)
 
@@ -334,7 +366,7 @@ class AjaxHandler(VoterPage):
 class ResultsPage(webapp.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'results.html')
-        years = Year.gql("ORDER BY year DESC")
+        years = Year.gql('ORDER BY year DESC')
         ballots = [(y, list(y.nonEmptyBallots())) for y in years]
         template_values = {
             'ballots': ballots,
@@ -346,9 +378,9 @@ class BallotPage(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'ballot.html')
         ballot = Ballot.get(key)
         if not ballot:
-            self.response.out.write("No such ballot: " + key)
+            self.response.out.write('No such ballot: ' + key)
             return
-        name = "Anonymous Chugchanga Member #" + str(ballot.key().id()) \
+        name = 'Anonymous Chugchanga Member #' + str(ballot.key().id()) \
             if ballot.anonymous else ballot.voter.name
         votes = ballot.getVotesDict()
         template_values = {
@@ -359,15 +391,101 @@ class BallotPage(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
         
 
+mbns = 'http://musicbrainz.org/ns/mmd-1.0#'
+extns = 'http://musicbrainz.org/ns/ext-1.0#'
+
+class CanonPage(webapp.RequestHandler):
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'canon.html')
+        vote = Vote.gql('WHERE release = :1', None).get()
+        if vote:
+            fields = { 'type': 'xml',
+                       'title': vote.title,
+                       'artist': vote.artist,
+                       'inc': 'artist release-events',
+                       }
+            url = 'http://musicbrainz.org/ws/1/release/?' \
+                + urllib.urlencode(fields)
+            result = urllib2.urlopen(url)
+            doc = minidom.parse(result)
+            releases = doc.getElementsByTagNameNS(mbns, 'release')
+            releases = [releaseElementToDict(elt) for elt in releases]
+            template_values = {
+                'v': vote,
+                'releases': releases,
+                'doc': doc.toprettyxml(),
+                }
+        else:
+            template_values = { }
+        self.response.out.write(template.render(path, template_values))
+
+    def post(self):
+        r = self.request.get('release')
+        release = \
+            Release(artist=Artist.get(self.request.get('artistid' + r)),
+                    title=self.request.get('title' + r),
+                    mbid=self.request.get('releaseid' + r, default_value=None),
+                    url=self.request.get('releaseurl' + r, default_value=None),
+                    )
+        release.put()
+        vote = Vote.get(self.request.get('vote'))
+        vote.release = release
+        vote.put()
+        self.redirect(self.request.uri)
+            
+def releaseElementToDict(elt):
+    return {
+        'score': elt.getAttributeNS(extns, 'score'),
+        'mbid': elt.getAttribute('id'),
+        'type': elt.getAttribute('type'),
+        'artist': artistElementToDict(elementField(elt, 'artist')),
+        'title': elementFieldValue(elt, 'title'),
+        'tracks': elementField(elt, 'track-list').getAttribute('count'),
+        'events': [releaseEventToDict(elt)
+                   for elt in elt.getElementsByTagNameNS(mbns, 'event')],
+        }
+
+def releaseEventToDict(elt):
+    return {
+        'date': elt.getAttribute('date'),
+        'country': elt.getAttribute('country'),
+        'label': elt.getAttribute('label'),
+        }
+
+def artistElementToDict(elt):
+    return {
+        'mbid': elt.getAttribute('id'),
+        'name': elementFieldValue(elt, 'name'),
+        'sortname': elementFieldValue(elt, 'sortname'),
+        }
+
+def elementField(elt, fieldName):
+    fields = elt.getElementsByTagNameNS(mbns, fieldName)
+    if fields:
+        return fields[0]
+
+def elementFieldValue(elt, fieldName):
+    field = elementField(elt, fieldName)
+    if field:
+        return textContent(field)
+
+# Node.textContent is only in DOM Level 3...
+def textContent(node):
+    node.normalize()
+    return ''.join(node.data for node in node.childNodes
+                   if node.nodeType == node.TEXT_NODE)
+
+
 application = webapp.WSGIApplication([('/', MainPage),
                                       ('/profile/', ProfilePage),
                                       ('/ajax/', AjaxHandler),
                                       ('/results/', ResultsPage),
                                       ('/ballot/([^/]+)/', BallotPage),
+                                      ('/canon/', CanonPage),
                                       ], debug=True)
 
 def main():
     run_wsgi_app(application)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

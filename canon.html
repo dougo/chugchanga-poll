@@ -1,0 +1,43 @@
+<html>
+  <head>
+    <title>Canonicalization</title>
+  </head>
+  <body>
+    <h1><hr>Canonicalization</h1>
+
+    <p>
+      {% if v %}
+        {{ v.ballot.voter.name }} ({{ v.ballot.year }}):
+        {{ v.category }} {{ v.rank }}.
+        {% include "vote-view.html" %}<br>
+        <form action="." method="post">
+	  <input type="hidden" name="vote" value="{{ v.key }}">
+          {% for r in releases %}
+	    <input type="radio" name="release" value="{{ r.index }}">
+	    <input type="hidden"
+		   name="artistid{{ r.index }}"
+		   value="{{ r.artist.mbid }}">
+	    <input type="hidden"
+		   name="releaseid{{ r.index }}"
+		   value="{{ r.mbid }}">
+            {{ r.score }}%
+	    <a href="http://musicbrainz.org/artist/{{ r.artist.mbid }}">
+	      <strong>{{ r.artist.name|escape }}</strong></a>,
+	    <input name="title{{ r.index }}" value="{{ r.title|escape }}">
+            <a href="http://musicbrainz.org/release/{{ r.mbid }}">
+	      ({{ r.tracks }} tracks) {{ r.type }} -
+	      {% for e in r.events %}
+	        {{ e.country }}: {{ e.date }}
+	        {{ e.label }}{% if not forloop.last %}, {% endif %}
+	      {% endfor %}
+	    </a>
+	    <br>
+	  {% endfor %}
+	  <br> <input type="submit" value="Canonicalize">
+	</form>
+	<pre>{{ doc|escape|linebreaksbr }}</pre>
+      {% else %}
+        Canonicalization finished!
+      {% endif %}
+  </body>
+</html>

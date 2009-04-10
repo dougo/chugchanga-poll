@@ -17,7 +17,7 @@ indexes:
   - name: year
     direction: desc
 
-# Used 242 times in query history.
+# Used 6 times in query history.
 - kind: Vote
   properties:
   - name: ballot
@@ -38,7 +38,7 @@ indexes:
   - name: ballot
   - name: rank
 
-# Used 29 times in query history.
+# Used 12 times in query history.
 - kind: Year
   properties:
   - name: votingIsOpen
