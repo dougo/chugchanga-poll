@@ -38,7 +38,7 @@ indexes:
   - name: ballot
   - name: rank
 
-# Used 12 times in query history.
+# Used 17 times in query history.
 - kind: Year
   properties:
   - name: votingIsOpen

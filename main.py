@@ -410,6 +410,8 @@ class CanonPage(webapp.RequestHandler):
             doc = minidom.parse(result)
             releases = doc.getElementsByTagNameNS(mbns, 'release')
             releases = [releaseElementToDict(elt) for elt in releases]
+            for i in range(len(releases)):
+                releases[i]['index'] = i
             template_values = {
                 'v': vote,
                 'releases': releases,
