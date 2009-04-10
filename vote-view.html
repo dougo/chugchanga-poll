@@ -1,4 +1,4 @@
-<li><strong>{{ v.artist }}</strong>{% if v.artist and v.title %}, {% endif %}<cite>{{ v.title }}</cite><br>
+<strong>{{ v.artist }}</strong>{% if v.artist and v.title %}, {% endif %}<cite>{{ v.title }}</cite><br>
 {% if v.comments %}
   {{ v.comments|linebreaksbr }}<br>
 {% endif %}

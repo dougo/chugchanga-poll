@@ -11,13 +11,13 @@
     {% endif %}
     <p><ol>
     {% for v in votes.favorite %}
-      {% include "vote-view.html" %}
+      <li>{% include "vote-view.html" %}
     {% endfor %}</ol>
     {% if votes.honorable.count %}
       <h3>Honorable mentions</h3>
       <ol>
 	{% for v in votes.honorable %}
-          {% include "vote-view.html" %}
+          <li>{% include "vote-view.html" %}
 	{% endfor %}
       </ol>
     {% endif %}
@@ -25,7 +25,7 @@
       <h3>Other notable releases</h3>
       <ol>
 	{% for v in votes.notable %}
-	  {% include "vote-view.html" %}
+	  <li>{% include "vote-view.html" %}
 	{% endfor %}
       </ol>
     {% endif %}
