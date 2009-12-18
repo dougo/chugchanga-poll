@@ -20,15 +20,11 @@
 		   name="releaseid{{ r.index }}"
 		   value="{{ r.mbid }}">
             {{ r.score }}%
-	    <a href="http://musicbrainz.org/artist/{{ r.artist.mbid }}">
+	    <a href="http://musicbrainz.org/artist/{{ r.artist.mbid }}.html">
 	      <strong>{{ r.artist.name|escape }}</strong></a>,
 	    <input name="title{{ r.index }}" value="{{ r.title|escape }}">
-            <a href="http://musicbrainz.org/release/{{ r.mbid }}">
-	      ({{ r.tracks }} tracks) {{ r.type }} -
-	      {% for e in r.events %}
-	        {{ e.country }}: {{ e.date }}
-	        {{ e.label }}{% if not forloop.last %}, {% endif %}
-	      {% endfor %}
+            <a href="http://musicbrainz.org/release-group/{{ r.mbid }}.html">
+	      {{ r.type }}
 	    </a>
 	    <br>
 	  {% endfor %}

@@ -397,8 +397,9 @@ extns = 'http://musicbrainz.org/ns/ext-1.0#'
 class CanonIndexPage(webapp.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'cindex.html')
-        uncanonicalized = Vote.gql('WHERE release = :1', None)
-        canonicalized = Release.all()
+        uncanonicalized = Vote.gql('WHERE release = :1 ORDER BY artist', None)
+        canonicalized = [r for r in Release.all()]
+        canonicalized.sort(key=lambda r: r.artist.sortname)
         template_values = {
             'uncanonicalized': uncanonicalized,
             'canonicalized': canonicalized,
@@ -413,13 +414,12 @@ class CanonPage(webapp.RequestHandler):
             fields = { 'type': 'xml',
                        'title': vote.title,
                        'artist': vote.artist,
-                       'inc': 'artist release-events',
                        }
-            url = 'http://musicbrainz.org/ws/1/release/?' \
+            url = 'http://musicbrainz.org/ws/1/release-group/?' \
                 + urllib.urlencode(fields)
             result = urllib2.urlopen(url)
             doc = minidom.parse(result)
-            releases = doc.getElementsByTagNameNS(mbns, 'release')
+            releases = doc.getElementsByTagNameNS(mbns, 'release-group')
             releases = [releaseElementToDict(elt) for elt in releases]
             for i in range(len(releases)):
                 releases[i]['index'] = i
@@ -453,16 +453,6 @@ def releaseElementToDict(elt):
         'type': elt.getAttribute('type'),
         'artist': artistElementToDict(elementField(elt, 'artist')),
         'title': elementFieldValue(elt, 'title'),
-        'tracks': elementField(elt, 'track-list').getAttribute('count'),
-        'events': [releaseEventToDict(elt)
-                   for elt in elt.getElementsByTagNameNS(mbns, 'event')],
-        }
-
-def releaseEventToDict(elt):
-    return {
-        'date': elt.getAttribute('date'),
-        'country': elt.getAttribute('country'),
-        'label': elt.getAttribute('label'),
         }
 
 def artistElementToDict(elt):
