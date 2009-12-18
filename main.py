@@ -394,10 +394,21 @@ class BallotPage(webapp.RequestHandler):
 mbns = 'http://musicbrainz.org/ns/mmd-1.0#'
 extns = 'http://musicbrainz.org/ns/ext-1.0#'
 
-class CanonPage(webapp.RequestHandler):
+class CanonIndexPage(webapp.RequestHandler):
     def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'cindex.html')
+        uncanonicalized = Vote.gql('WHERE release = :1', None)
+        canonicalized = Release.all()
+        template_values = {
+            'uncanonicalized': uncanonicalized,
+            'canonicalized': canonicalized,
+            }
+        self.response.out.write(template.render(path, template_values))
+
+class CanonPage(webapp.RequestHandler):
+    def get(self, key):
         path = os.path.join(os.path.dirname(__file__), 'canon.html')
-        vote = Vote.gql('WHERE release = :1', None).get()
+        vote = Vote.get(key);
         if vote:
             fields = { 'type': 'xml',
                        'title': vote.title,
@@ -421,7 +432,7 @@ class CanonPage(webapp.RequestHandler):
             template_values = { }
         self.response.out.write(template.render(path, template_values))
 
-    def post(self):
+    def post(self, key):
         r = self.request.get('release')
         release = \
             Release(artist=Artist.get(self.request.get('artistid' + r)),
@@ -430,10 +441,10 @@ class CanonPage(webapp.RequestHandler):
                     url=self.request.get('releaseurl' + r, default_value=None),
                     )
         release.put()
-        vote = Vote.get(self.request.get('vote'))
+        vote = Vote.get(key);
         vote.release = release
         vote.put()
-        self.redirect(self.request.uri)
+        self.redirect('/canon/');
             
 def releaseElementToDict(elt):
     return {
@@ -483,7 +494,8 @@ application = webapp.WSGIApplication([('/', MainPage),
                                       ('/ajax/', AjaxHandler),
                                       ('/results/', ResultsPage),
                                       ('/ballot/([^/]+)/', BallotPage),
-                                      ('/canon/', CanonPage),
+                                      ('/canon/', CanonIndexPage),
+                                      ('/canon/([^/]+)', CanonPage),
                                       ], debug=True)
 
 def main():

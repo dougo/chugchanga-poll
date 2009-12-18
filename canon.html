@@ -10,8 +10,7 @@
         {{ v.ballot.voter.name }} ({{ v.ballot.year }}):
         {{ v.category }} {{ v.rank }}.
         {% include "vote-view.html" %}<br>
-        <form action="." method="post">
-	  <input type="hidden" name="vote" value="{{ v.key }}">
+        <form action="" method="post">
           {% for r in releases %}
 	    <input type="radio" name="release" value="{{ r.index }}">
 	    <input type="hidden"
