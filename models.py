@@ -11,9 +11,11 @@ class Globals(db.Model):
     # Users must enter the secret word before they become Voters.
     secretWord = db.StringProperty()
 
-def secretWord():
-    globals = Globals.all().get()
-    return globals.secretWord if globals else None
+    @classmethod
+    def checkSecretWord(cls, word):
+        globals = cls.all().get()
+        secret = globals.secretWord if globals else None
+        return word == secret
 
 # Each Year object signifies whether voting is still open for that year.
 class Year(db.Model):

@@ -13,7 +13,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
-from models import Voter, Year, Ballot, Vote, Release, Artist, secretWord, categories
+from models import Voter, Year, Ballot, Vote, Release, Artist, Globals, categories
 
 # Base class for voter pages.
 class VoterPage(webapp.RequestHandler):
@@ -90,7 +90,7 @@ class MainPage(VoterPage):
         user = users.get_current_user()
         secret = self.request.get('secret')
         name = self.request.get('name')
-        if secret == secretWord():
+        if Globals.checkSecretWord(secret):
             Voter(user=user, name=name or user.nickname()).put()
             self.redirect(self.request.uri)
             return
