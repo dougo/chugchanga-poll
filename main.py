@@ -237,6 +237,7 @@ class BallotPage(Page):
         votes = ballot.getVotesDict()
         self.render('ballot.html', name=name, ballot=ballot, votes=votes)
         
+# TO DO: update the ballot objects on the live server to be root objects.
 
 class CanonIndexPage(Page):
     def get(self):
@@ -276,6 +277,17 @@ class CanonPage(Page):
         vote.put()
         self.redirect('/canon/')
             
+class BackupPage(Page):
+    def get(self):
+        self.response.headers.add_header("Content-Type", "text/xml")
+        self.response.out.write('<?xml version="1.0" encoding="UTF-8"?>')
+        self.response.out.write('<chugchanga-poll>')
+        for model in [Globals, Year, Voter, Ballot, Vote, Release, Artist]:
+            for obj in model.all():
+                self.response.out.write(obj.to_xml())
+        self.response.out.write('</chugchanga-poll>')
+        
+
 application = webapp.WSGIApplication([('/', MainPage),
                                       ('/profile/', ProfilePage),
                                       ('/ajax/', AjaxHandler),
@@ -283,6 +295,7 @@ application = webapp.WSGIApplication([('/', MainPage),
                                       ('/ballot/([0-9]+)/', BallotPage),
                                       ('/canon/', CanonIndexPage),
                                       ('/canon/([0-9]+)/([0-9]+)', CanonPage),
+                                      ('/backup', BackupPage),
                                       ], debug=True)
 
 def main():
