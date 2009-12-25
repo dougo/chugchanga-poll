@@ -15,22 +15,21 @@
 	    <input type="radio" name="release" value="{{ r.index }}">
 	    <input type="hidden"
 		   name="artistid{{ r.index }}"
-		   value="{{ r.artist.mbid }}">
+		   value="{{ r.artist.id }}">
 	    <input type="hidden"
 		   name="releaseid{{ r.index }}"
-		   value="{{ r.mbid }}">
+		   value="{{ r.id }}">
             {{ r.score }}%
-	    <a href="http://musicbrainz.org/artist/{{ r.artist.mbid }}.html">
+	    <a href="http://musicbrainz.org/artist/{{ r.artist.id }}.html">
 	      <strong>{{ r.artist.name|escape }}</strong></a>,
 	    <input name="title{{ r.index }}" value="{{ r.title|escape }}">
-            <a href="http://musicbrainz.org/release-group/{{ r.mbid }}.html">
+            <a href="http://musicbrainz.org/release-group/{{ r.id }}.html">
 	      {{ r.type }}
 	    </a>
 	    <br>
 	  {% endfor %}
 	  <br> <input type="submit" value="Canonicalize">
 	</form>
-	<pre>{{ doc|escape|linebreaksbr }}</pre>
       {% else %}
         Canonicalization finished!
       {% endif %}

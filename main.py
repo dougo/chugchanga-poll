@@ -3,9 +3,6 @@
 
 import os
 import itertools
-import urllib
-import urllib2
-from xml.dom import minidom
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -13,6 +10,8 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
 from models import Voter, Year, Ballot, Vote, Release, Artist, Globals
+import musicbrainz
+mb = musicbrainz
 
 # Base class for voter pages.
 class VoterPage(webapp.RequestHandler):
@@ -268,9 +267,6 @@ class BallotPage(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
         
 
-mbns = 'http://musicbrainz.org/ns/mmd-1.0#'
-extns = 'http://musicbrainz.org/ns/ext-1.0#'
-
 class CanonIndexPage(webapp.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'cindex.html')
@@ -286,24 +282,14 @@ class CanonIndexPage(webapp.RequestHandler):
 class CanonPage(webapp.RequestHandler):
     def get(self, key):
         path = os.path.join(os.path.dirname(__file__), 'canon.html')
-        vote = Vote.get(key);
+        vote = Vote.get(key)
         if vote:
-            fields = { 'type': 'xml',
-                       'title': vote.title,
-                       'artist': vote.artist,
-                       }
-            url = 'http://musicbrainz.org/ws/1/release-group/?' \
-                + urllib.urlencode(fields)
-            result = urllib2.urlopen(url)
-            doc = minidom.parse(result)
-            releases = doc.getElementsByTagNameNS(mbns, 'release-group')
-            releases = [releaseElementToDict(elt) for elt in releases]
-            for i in range(len(releases)):
-                releases[i]['index'] = i
+            rgs = mb.ReleaseGroup.search(title=vote.title, artist=vote.artist)
+            for i in range(len(rgs)):
+                rgs[i].index = i
             template_values = {
                 'v': vote,
-                'releases': releases,
-                'doc': doc.toprettyxml(),
+                'releases': rgs,
                 }
         else:
             template_values = { }
@@ -318,44 +304,11 @@ class CanonPage(webapp.RequestHandler):
                     url=self.request.get('releaseurl' + r, default_value=None),
                     )
         release.put()
-        vote = Vote.get(key);
+        vote = Vote.get(key)
         vote.release = release
         vote.put()
-        self.redirect('/canon/');
+        self.redirect('/canon/')
             
-def releaseElementToDict(elt):
-    return {
-        'score': elt.getAttributeNS(extns, 'score'),
-        'mbid': elt.getAttribute('id'),
-        'type': elt.getAttribute('type'),
-        'artist': artistElementToDict(elementField(elt, 'artist')),
-        'title': elementFieldValue(elt, 'title'),
-        }
-
-def artistElementToDict(elt):
-    return {
-        'mbid': elt.getAttribute('id'),
-        'name': elementFieldValue(elt, 'name'),
-        'sortname': elementFieldValue(elt, 'sortname'),
-        }
-
-def elementField(elt, fieldName):
-    fields = elt.getElementsByTagNameNS(mbns, fieldName)
-    if fields:
-        return fields[0]
-
-def elementFieldValue(elt, fieldName):
-    field = elementField(elt, fieldName)
-    if field:
-        return textContent(field)
-
-# Node.textContent is only in DOM Level 3...
-def textContent(node):
-    node.normalize()
-    return ''.join(node.data for node in node.childNodes
-                   if node.nodeType == node.TEXT_NODE)
-
-
 application = webapp.WSGIApplication([('/', MainPage),
                                       ('/profile/', ProfilePage),
                                       ('/ajax/', AjaxHandler),

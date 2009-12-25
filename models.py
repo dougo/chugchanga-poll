@@ -2,9 +2,9 @@
 # General Public License v3.  See COPYING for details.
 
 import itertools
-import urllib2
-from xml.dom import minidom
 from google.appengine.ext import db
+import musicbrainz
+mb = musicbrainz
 
 # Globals is a singleton class whose instance hold global values.
 class Globals(db.Model):
@@ -98,11 +98,9 @@ class Artist(db.Model):
     def get(mbid):
         artist = Artist.gql('WHERE mbid = :1', mbid).get()
         if not artist:
-            url = 'http://musicbrainz.org/ws/1/artist/' + mbid +'?type=xml'
-            doc = minidom.parse(urllib2.urlopen(url))
-            elt = elementField(doc.documentElement, 'artist')
-            artist = Artist(name=elementFieldValue(elt, 'name'),
-                            sortname=elementFieldValue(elt, 'sort-name'),
+            mbArtist = mb.Artist(mbid)
+            artist = Artist(name=mbArtist.name,
+                            sortname=mbArtist.sortname,
                             mbid=mbid)
             artist.put()
         return artist
