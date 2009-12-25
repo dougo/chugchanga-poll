@@ -2,7 +2,6 @@
 # General Public License v3.  See COPYING for details.
 
 import os
-import cgi
 import itertools
 import urllib
 import urllib2
@@ -13,7 +12,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
-from models import Voter, Year, Ballot, Vote, Release, Artist, Globals, categories
+from models import Voter, Year, Ballot, Vote, Release, Artist, Globals
 
 # Base class for voter pages.
 class VoterPage(webapp.RequestHandler):
@@ -128,15 +127,15 @@ class MainPage(VoterPage):
         votes = dict()
         if self.voter.wantsPlain:
             # Fill in gaps in the ranking with blank Votes.
-            for category in categories:
-                if category == categories[0]:
+            for category in Ballot.categories:
+                if category == Ballot.categories[0]:
                     max = 20
                 else:
                     max = self.ballot.maxRank(category)
                 votes[category] = [self.ballot.getVote(category, rank)
                                    for rank in range(1, max+1)]
         else:
-            for category in categories:
+            for category in Ballot.categories:
                 votes[category] = [vote.toDict()
                                    for vote in self.ballot.getVotes(category)]
             votes = simplejson.dumps(votes, indent=4)
@@ -179,7 +178,7 @@ class MainPage(VoterPage):
         ballot.preamble = self.request.get('preamble')
         ballot.postamble = self.request.get('postamble')
         numVotes = dict()
-        for cat in categories:
+        for cat in Ballot.categories:
             numVotes[cat] = int(self.request.get(cat + 's'))
         ballot.honorable = numVotes['honorable']
         if addCat == 'honorable':
@@ -189,7 +188,7 @@ class MainPage(VoterPage):
             ballot.notable += 10
         ballot.put()
 
-        for cat in categories:
+        for cat in Ballot.categories:
             for rank in range(1, numVotes[cat]+1):
                 artist = self.request.get('%s%dartist' % (cat, rank))
                 title = self.request.get('%s%dtitle' % (cat, rank))

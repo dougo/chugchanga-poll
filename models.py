@@ -46,6 +46,8 @@ class Ballot(db.Model):
     honorable = db.IntegerProperty(default=0)
     notable = db.IntegerProperty(default=0)
 
+    categories = ['favorite', 'honorable', 'notable']
+
     # Returns True iff the ballot has no votes.
     def isEmpty(self):
         return self.vote_set.count() == 0
@@ -81,7 +83,7 @@ class Ballot(db.Model):
     # votes for that category.
     def getVotesDict(self):
         votes = dict()
-        for category in categories:
+        for category in self.categories:
             votes[category] = self.getVotes(category)
         return votes
 
@@ -113,11 +115,9 @@ class Release(db.Model):
     url = db.LinkProperty()
 
 
-categories = ['favorite', 'honorable', 'notable']
-
 class Vote(db.Model):
     ballot = db.ReferenceProperty(Ballot, required=True)
-    category = db.StringProperty(default=categories[0])
+    category = db.StringProperty(default=Ballot.categories[0])
     rank = db.IntegerProperty(required=True) # 1-based rank within category
     release = db.ReferenceProperty(Release)
     artist = db.StringProperty(default='')
