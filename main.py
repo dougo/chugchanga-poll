@@ -279,7 +279,7 @@ class CanonPage(Page):
             
 class BackupPage(Page):
     def get(self):
-        self.response.headers.add_header("Content-Type", "text/xml")
+        self.response.headers['Content-Type'] = "text/xml"
         self.response.out.write('<?xml version="1.0" encoding="UTF-8"?>')
         self.response.out.write('<chugchanga-poll>')
         for model in [Globals, Year, Voter, Ballot, Vote, Release, Artist]:
