@@ -13,8 +13,13 @@ from models import Voter, Year, Ballot, Vote, Release, Artist, Globals
 import musicbrainz
 mb = musicbrainz
 
+class Page(webapp.RequestHandler):
+    def render(self, template_file, **template_values):
+        path = os.path.join(os.path.dirname(__file__), template_file)
+        self.response.out.write(template.render(path, template_values))
+
 # Base class for voter pages.
-class VoterPage(webapp.RequestHandler):
+class VoterPage(Page):
     # Returns:
     #  'invalid': if the user has not entered the secret word
     #  'closed': if there are no poll years currently open
@@ -54,12 +59,7 @@ class ProfilePage(VoterPage):
     def get(self):
         if self.validate():
             return
-        path = os.path.join(os.path.dirname(__file__), 'profile.html')
-        template_values = {
-            'voter': self.voter,
-            'logout': self.logout,
-            }
-        self.response.out.write(template.render(path, template_values))
+        self.render('profile.html', voter=self.voter, logout=self.logout)
         
     def post(self):
         if self.validate():
@@ -92,22 +92,11 @@ class MainPage(VoterPage):
             Voter(user=user, name=name or user.nickname()).put()
             self.redirect(self.request.uri)
             return
-        path = os.path.join(os.path.dirname(__file__), 'front.html')
-        template_values = {
-            'user': user,
-            'name': name,
-            'secret': secret,
-            'logout': self.logout
-            }
-        self.response.out.write(template.render(path, template_values))
+        self.render('front.html', user=user, name=name, secret=secret,
+                    logout=self.logout)
 
     def closedPage(self):
-        path = os.path.join(os.path.dirname(__file__), 'closed.html')
-        template_values = {
-            'voter': self.voter,
-            'logout': self.logout
-            }
-        self.response.out.write(template.render(path, template_values))
+        self.render('closed.html', voter=self.voter, logout=self.logout)
 
     def get(self):
         if not self.validate():
@@ -139,16 +128,9 @@ class MainPage(VoterPage):
                                    for vote in self.ballot.getVotes(category)]
             votes = simplejson.dumps(votes, indent=4)
 
-        path = os.path.join(os.path.dirname(__file__), 'main.html')
         self.years.remove(self.year)
-        template_values = {
-            'logout': self.logout,
-            'year': self.year,
-            'other_years': self.years,
-            'ballot': self.ballot,
-            'votes': votes,
-            }
-        self.response.out.write(template.render(path, template_values))
+        self.render('main.html', logout=self.logout, year=self.year,
+                    other_years=self.years, ballot=self.ballot, votes=votes)
 
     def post(self):
         if not self.validate():
@@ -239,19 +221,14 @@ class AjaxHandler(VoterPage):
                 self.ballot.postamble = value
             self.ballot.put()
 
-class ResultsPage(webapp.RequestHandler):
+class ResultsPage(Page):
     def get(self):
-        path = os.path.join(os.path.dirname(__file__), 'results.html')
         years = Year.gql('ORDER BY year DESC')
         ballots = [(y, list(y.nonEmptyBallots())) for y in years]
-        template_values = {
-            'ballots': ballots,
-            }
-        self.response.out.write(template.render(path, template_values))
+        self.render('results.html', ballots=ballots)
 
-class BallotPage(webapp.RequestHandler):
+class BallotPage(Page):
     def get(self, key):
-        path = os.path.join(os.path.dirname(__file__), 'ballot.html')
         ballot = Ballot.get(key)
         if not ballot:
             self.response.out.write('No such ballot: ' + key)
@@ -259,41 +236,24 @@ class BallotPage(webapp.RequestHandler):
         name = 'Anonymous Chugchanga Member #' + str(ballot.key().id()) \
             if ballot.anonymous else ballot.voter.name
         votes = ballot.getVotesDict()
-        template_values = {
-            'name': name,
-            'ballot': ballot,
-            'votes': votes
-            }
-        self.response.out.write(template.render(path, template_values))
+        self.render('ballot.html', name=name, ballot=ballot, votes=votes)
         
 
-class CanonIndexPage(webapp.RequestHandler):
+class CanonIndexPage(Page):
     def get(self):
-        path = os.path.join(os.path.dirname(__file__), 'cindex.html')
         uncanonicalized = Vote.gql('WHERE release = :1 ORDER BY artist', None)
         canonicalized = [r for r in Release.all()]
         canonicalized.sort(key=lambda r: r.artist.sortname)
-        template_values = {
-            'uncanonicalized': uncanonicalized,
-            'canonicalized': canonicalized,
-            }
-        self.response.out.write(template.render(path, template_values))
+        self.render('cindex.html', uncanonicalized=uncanonicalized,
+                    canonicalized=canonicalized)
 
-class CanonPage(webapp.RequestHandler):
+class CanonPage(Page):
     def get(self, key):
-        path = os.path.join(os.path.dirname(__file__), 'canon.html')
         vote = Vote.get(key)
-        if vote:
-            rgs = mb.ReleaseGroup.search(title=vote.title, artist=vote.artist)
-            for i in range(len(rgs)):
-                rgs[i].index = i
-            template_values = {
-                'v': vote,
-                'releases': rgs,
-                }
-        else:
-            template_values = { }
-        self.response.out.write(template.render(path, template_values))
+        rgs = mb.ReleaseGroup.search(title=vote.title, artist=vote.artist)
+        for i in range(len(rgs)):
+            rgs[i].index = i
+        self.render('canon.html', v=vote, releases=rgs)
 
     def post(self, key):
         r = self.request.get('release')
