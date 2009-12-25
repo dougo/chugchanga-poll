@@ -10,7 +10,7 @@
 
 <p>
 {% for v in uncanonicalized %}
-<a href="{{ v.key }}">
+<a href="{{ v.ballot.key.id }}/{{ v.key.id }}">
 <strong>{{ v.artist }}</strong>, <cite>{{ v.title }}</cite>
 </a> <br />
 {% endfor %}

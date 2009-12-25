@@ -108,8 +108,7 @@ class MainPage(VoterPage):
             self.voter.put()
 
         if not self.ballot:
-            self.ballot = Ballot(parent=self.voter, voter=self.voter,
-                                 year=self.year)
+            self.ballot = Ballot(voter=self.voter, year=self.year)
             self.ballot.put()
 
         votes = dict()
@@ -145,17 +144,17 @@ class MainPage(VoterPage):
             self.redirect(self.request.uri)
 
     def update(self, votes, addCat):
-        # Delete the old ballot and votes and replace them with the
-        # request data.  This avoids cases where the form data doesn't
-        # match the current database (e.g. from the back button or a
-        # cloned window).
+        # Delete the old votes and replace them with the request data.
+        # This avoids cases where the form data doesn't match the
+        # current database (e.g. from the back button or a cloned
+        # window).
         if self.ballot:
             db.delete(votes)
-            self.ballot.delete()
+            ballot = self.ballot
+        else:
+            ballot = Ballot(voter=self.voter, year=self.year)
 
-        ballot = Ballot(parent=self.voter, voter=self.voter, year=self.year)
-        if self.request.get('anonymous'):
-            ballot.anonymous = True
+        ballot.anonymous = bool(self.request.get('anonymous'))
         ballot.preamble = self.request.get('preamble')
         ballot.postamble = self.request.get('postamble')
         numVotes = dict()
@@ -228,12 +227,12 @@ class ResultsPage(Page):
         self.render('results.html', ballots=ballots)
 
 class BallotPage(Page):
-    def get(self, key):
-        ballot = Ballot.get(key)
+    def get(self, id):
+        ballot = Ballot.get_by_id(int(id))
         if not ballot:
-            self.response.out.write('No such ballot: ' + key)
+            self.response.out.write('No such ballot: ' + id)
             return
-        name = 'Anonymous Chugchanga Member #' + str(ballot.key().id()) \
+        name = 'Anonymous Chugchanga Member #' + id \
             if ballot.anonymous else ballot.voter.name
         votes = ballot.getVotesDict()
         self.render('ballot.html', name=name, ballot=ballot, votes=votes)
@@ -248,14 +247,22 @@ class CanonIndexPage(Page):
                     canonicalized=canonicalized)
 
 class CanonPage(Page):
-    def get(self, key):
-        vote = Vote.get(key)
+    @staticmethod
+    def getVote(ballotID, voteID):
+        ballotKey = db.Key.from_path(Ballot.kind(), int(ballotID))
+        return Vote.get_by_id(int(voteID), ballotKey)
+
+    def get(self, ballotID, voteID):
+        vote = self.getVote(ballotID, voteID)
+        if not vote:
+            self.response.out.write('No such vote: ' + ballotID + '/' + voteID)
+            return
         rgs = mb.ReleaseGroup.search(title=vote.title, artist=vote.artist)
         for i in range(len(rgs)):
             rgs[i].index = i
         self.render('canon.html', v=vote, releases=rgs)
 
-    def post(self, key):
+    def post(self, ballotID, voteID):
         r = self.request.get('release')
         release = \
             Release(artist=Artist.get(self.request.get('artistid' + r)),
@@ -264,7 +271,7 @@ class CanonPage(Page):
                     url=self.request.get('releaseurl' + r, default_value=None),
                     )
         release.put()
-        vote = Vote.get(key)
+        vote = self.getVote(ballotID, voteID)
         vote.release = release
         vote.put()
         self.redirect('/canon/')
@@ -273,9 +280,9 @@ application = webapp.WSGIApplication([('/', MainPage),
                                       ('/profile/', ProfilePage),
                                       ('/ajax/', AjaxHandler),
                                       ('/results/', ResultsPage),
-                                      ('/ballot/([^/]+)/', BallotPage),
+                                      ('/ballot/([0-9]+)/', BallotPage),
                                       ('/canon/', CanonIndexPage),
-                                      ('/canon/([^/]+)', CanonPage),
+                                      ('/canon/([0-9]+)/([0-9]+)', CanonPage),
                                       ], debug=True)
 
 def main():
