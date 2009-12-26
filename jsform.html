@@ -15,7 +15,7 @@ function save(id, parameters) {
     status.setAttribute("src", "/static/progress.gif");
     status.removeAttribute("title");
   }
-  new Ajax.Request('/ajax/', {
+  new Ajax.Request('ajax/', {
     parameters: parameters,
     onSuccess: function(transport) {
       if (status) {
@@ -90,7 +90,7 @@ function addVotes(n, category) {
 // ]]>
 </script>
 
-<form action="." method="post">
+<form action="" method="post">
   <br><a name="preamble"></a>
   <h3>Opening comments
     <img id="preambleStatus" src="/static/progress.gif"

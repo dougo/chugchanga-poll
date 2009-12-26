@@ -67,7 +67,7 @@ class ProfilePage(VoterPage):
         self.voter.name = self.request.get('name') or self.voter.user.nickname()
         self.voter.url = self.request.get('url')
         self.voter.put()
-        self.redirect('/')
+        self.redirect('..')
         
 class MainPage(VoterPage):
     # Returns:
@@ -237,8 +237,6 @@ class BallotPage(Page):
         votes = ballot.getVotesDict()
         self.render('ballot.html', name=name, ballot=ballot, votes=votes)
         
-# TO DO: update the ballot objects on the live server to be root objects.
-
 class CanonIndexPage(Page):
     def get(self):
         uncanonicalized = Vote.gql('WHERE release = :1 ORDER BY artist', None)
@@ -275,7 +273,7 @@ class CanonPage(Page):
         vote = self.getVote(ballotID, voteID)
         vote.release = release
         vote.put()
-        self.redirect('/canon/')
+        self.redirect('..')
             
 class BackupPage(Page):
     def get(self):
@@ -288,14 +286,14 @@ class BackupPage(Page):
         self.response.out.write('</chugchanga-poll>')
         
 
-application = webapp.WSGIApplication([('/', MainPage),
-                                      ('/profile/', ProfilePage),
-                                      ('/ajax/', AjaxHandler),
-                                      ('/results/', ResultsPage),
+application = webapp.WSGIApplication([('/members/', MainPage),
+                                      ('/members/profile/', ProfilePage),
+                                      ('/members/ajax/', AjaxHandler),
+                                      ('/', ResultsPage),
                                       ('/ballot/([0-9]+)/', BallotPage),
-                                      ('/canon/', CanonIndexPage),
-                                      ('/canon/([0-9]+)/([0-9]+)', CanonPage),
-                                      ('/backup', BackupPage),
+                                      ('/admin/canon/', CanonIndexPage),
+                                      ('/admin/canon/([0-9]+)/([0-9]+)', CanonPage),
+                                      ('/admin/backup', BackupPage),
                                       ], debug=True)
 
 def main():
