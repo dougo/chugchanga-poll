@@ -4,37 +4,55 @@
 import urllib
 import urllib2
 from xml.dom import minidom
+import time
 
 mbns = 'http://musicbrainz.org/ns/mmd-1.0#'
 extns = 'http://musicbrainz.org/ns/ext-1.0#'
 
-class Artist:
+class Resource:
+    @classmethod
+    def url(cls):
+        return 'http://musicbrainz.org/ws/1/' + cls.type + '/'
+
+    @classmethod
+    def getElement(cls, id):
+        time.sleep(1)
+        url = cls.url + id + '?type=xml'
+        doc = minidom.parse(urllib2.urlopen(url))
+        return elementField(doc.documentElement, cls.type)
+
+    @classmethod
+    def searchElements(cls, **fields):
+        time.sleep(1)
+        fields['type'] = 'xml'
+        url = cls.url() + '?' + urllib.urlencode(fields)
+        doc = minidom.parse(urllib2.urlopen(url))
+        return doc.getElementsByTagNameNS(mbns, cls.type)
+
+class Artist(Resource):
+    type = 'artist'
     def __init__(self, id=None, elt=None):
         if elt == None:
-            url = 'http://musicbrainz.org/ws/1/artist/' + id + '?type=xml'
-            doc = minidom.parse(urllib2.urlopen(url))
-            elt = elementField(doc.documentElement, 'artist')
+            elt = self.getElement(id)
         self.id = elt.getAttribute('id')
         self.name = elementFieldValue(elt, 'name')
         self.sortname = elementFieldValue(elt, 'sort-name')
 
-class ReleaseGroup:
-    def __init__(self, elt):
+class ReleaseGroup(Resource):
+    type = 'release-group'
+    def __init__(self, id=None, elt=None):
+        if elt == None:
+            elt = self.getElement(id)
         self.score = elt.getAttributeNS(extns, 'score')
         self.id = elt.getAttribute('id')
         self.type = elt.getAttribute('type')
         self.artist = Artist(elt=elementField(elt, 'artist'))
         self.title = elementFieldValue(elt, 'title')
 
-    @staticmethod
-    def search(**fields):
-        fields['type'] = 'xml'
-        url = ('http://musicbrainz.org/ws/1/release-group/?'
-               + urllib.urlencode(fields))
-        result = urllib2.urlopen(url)
-        doc = minidom.parse(result)
-        rgs = doc.getElementsByTagNameNS(mbns, 'release-group')
-        return [ReleaseGroup(elt) for elt in rgs]
+    @classmethod
+    def search(cls, **fields):
+        rgs = cls.searchElements(**fields)
+        return [ReleaseGroup(elt=elt) for elt in rgs]
 
 def elementField(elt, fieldName):
     fields = elt.getElementsByTagNameNS(mbns, fieldName)
