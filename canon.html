@@ -17,17 +17,12 @@
       {% for r in releases %}
 	<form action="" method="post">
 	  <input type="submit" value="Canonicalize">
-	  <input type="hidden"
-		 name="artistid"
-		 value="{{ r.artist.id }}">
-	  <input type="hidden"
-		 name="releaseid"
-		 value="{{ r.id }}">
+	  <input type="hidden" name="releaseid" value="{{ r.id }}">
 	  {{ r.score }}%
 	  <a href="http://musicbrainz.org/artist/{{ r.artist.id }}.html">
 	    <strong>{{ r.artist.name|escape }}</strong></a>,
-	  <input name="title" value="{{ r.title|escape }}">
 	  <a href="http://musicbrainz.org/release-group/{{ r.id }}.html">
+	    <cite>{{ r.title|escape }}</cite>
 	    {{ r.type }}
 	  </a>
 	</form>

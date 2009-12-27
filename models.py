@@ -87,7 +87,6 @@ class Ballot(db.Model):
             votes[category] = self.getVotes(category)
         return votes
 
-
 class Artist(db.Model):
     name = db.StringProperty(required=True)
     sortname = db.StringProperty(required=True)
@@ -105,13 +104,22 @@ class Artist(db.Model):
             artist.put()
         return artist
 
-
 class Release(db.Model):
     artist = db.ReferenceProperty(Artist, required=True)
     title = db.StringProperty(required=True)
     mbid = db.StringProperty()
     url = db.LinkProperty()
 
+    @staticmethod
+    def get(mbid):
+        release = Release.gql('WHERE mbid = :1', mbid).get()
+        if not release:
+            mbRelease = mb.ReleaseGroup(mbid)
+            release = Release(artist=Artist.get(mbRelease.artist.id),
+                              title=mbRelease.title,
+                              mbid=mbRelease.id)
+            release.put()
+        return release
 
 class Vote(db.Model):
     ballot = db.ReferenceProperty(Ballot, required=True)
