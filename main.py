@@ -240,8 +240,8 @@ class BallotPage(Page):
 class CanonIndexPage(Page):
     def get(self):
         uncanonicalized = Vote.gql('WHERE release = :1 ORDER BY artist', None)
-        canonicalized = [r for r in Release.all()]
-        canonicalized.sort(key=lambda r: r.artist.sortname)
+        canonicalized = [(r, r.vote_set) for r in Release.all()]
+        canonicalized.sort(key=lambda rv: rv[0].artist.sortname)
         self.render('cindex.html', uncanonicalized=uncanonicalized,
                     canonicalized=canonicalized)
 

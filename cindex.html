@@ -10,17 +10,20 @@
 
 <p>
 {% for v in uncanonicalized %}
-<a href="{{ v.ballot.key.id }}/{{ v.key.id }}">
-<strong>{{ v.artist }}</strong>, <cite>{{ v.title }}</cite>
-</a> <br />
+{% include "cvote-view.html" %}<br />
 {% endfor %}
 </p>
 
 <h2>Releases</h2>
 
 <p>
-{% for r in canonicalized %}
-<strong>{{ r.artist.name }}</strong>, <cite>{{ r.title }}</cite> <br />
+{% for rv in canonicalized %}
+<strong>{{ rv.0.artist.name }}</strong>, <cite>{{ rv.0.title }}</cite> <br />
+<ul>
+  {% for v in rv.1 %}
+  <li> {% include "cvote-view.html" %}
+  {% endfor %}
+</ul>
 {% endfor %}
 </p>
 
