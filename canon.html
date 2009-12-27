@@ -17,17 +17,17 @@
 	{% endif %}
         <form action="" method="post">
           {% for r in releases %}
-	    <input type="radio" name="release" value="{{ r.index }}">
+	    <input type="radio" name="release" value="{{ forloop.counter }}">
 	    <input type="hidden"
-		   name="artistid{{ r.index }}"
+		   name="artistid{{ forloop.counter }}"
 		   value="{{ r.artist.id }}">
 	    <input type="hidden"
-		   name="releaseid{{ r.index }}"
+		   name="releaseid{{ forloop.counter }}"
 		   value="{{ r.id }}">
             {{ r.score }}%
 	    <a href="http://musicbrainz.org/artist/{{ r.artist.id }}.html">
 	      <strong>{{ r.artist.name|escape }}</strong></a>,
-	    <input name="title{{ r.index }}" value="{{ r.title|escape }}">
+	    <input name="title{{ forloop.counter }}" value="{{ r.title|escape }}">
             <a href="http://musicbrainz.org/release-group/{{ r.id }}.html">
 	      {{ r.type }}
 	    </a>
