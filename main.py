@@ -260,12 +260,11 @@ class CanonPage(Page):
         self.render('canon.html', v=vote, releases=rgs)
 
     def post(self, ballotID, voteID):
-        r = self.request.get('release')
         release = \
-            Release(artist=Artist.get(self.request.get('artistid' + r)),
-                    title=self.request.get('title' + r),
-                    mbid=self.request.get('releaseid' + r, default_value=None),
-                    url=self.request.get('releaseurl' + r, default_value=None),
+            Release(artist=Artist.get(self.request.get('artistid')),
+                    title=self.request.get('title'),
+                    mbid=self.request.get('releaseid', default_value=None),
+                    url=self.request.get('releaseurl', default_value=None),
                     )
         release.put()
         vote = self.getVote(ballotID, voteID)

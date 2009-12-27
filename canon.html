@@ -6,37 +6,31 @@
     <h1><hr>Canonicalization</h1>
 
     <p>
-      {% if v %}
-        {{ v.ballot.voter.name }} ({{ v.ballot.year }}):
-        {{ v.category }} {{ v.rank }}.
-        {% include "vote-view.html" %}<br>
-        {% if v.release %}
-          Current canonicalization:
-          <strong>{{ v.release.artist.name }}</strong>,
-          <cite>{{ v.release.title }}</cite><br>
-	{% endif %}
-        <form action="" method="post">
-          {% for r in releases %}
-	    <input type="radio" name="release" value="{{ forloop.counter }}">
-	    <input type="hidden"
-		   name="artistid{{ forloop.counter }}"
-		   value="{{ r.artist.id }}">
-	    <input type="hidden"
-		   name="releaseid{{ forloop.counter }}"
-		   value="{{ r.id }}">
-            {{ r.score }}%
-	    <a href="http://musicbrainz.org/artist/{{ r.artist.id }}.html">
-	      <strong>{{ r.artist.name|escape }}</strong></a>,
-	    <input name="title{{ forloop.counter }}" value="{{ r.title|escape }}">
-            <a href="http://musicbrainz.org/release-group/{{ r.id }}.html">
-	      {{ r.type }}
-	    </a>
-	    <br>
-	  {% endfor %}
-	  <br> <input type="submit" value="Canonicalize">
-	</form>
-      {% else %}
-        Canonicalization finished!
+      {{ v.ballot.voter.name }} ({{ v.ballot.year }}):
+      {{ v.category }} {{ v.rank }}.
+      {% include "vote-view.html" %}<br>
+      {% if v.release %}
+	Current canonicalization:
+	<strong>{{ v.release.artist.name }}</strong>,
+	<cite>{{ v.release.title }}</cite><br>
       {% endif %}
+      {% for r in releases %}
+	<form action="" method="post">
+	  <input type="submit" value="Canonicalize">
+	  <input type="hidden"
+		 name="artistid"
+		 value="{{ r.artist.id }}">
+	  <input type="hidden"
+		 name="releaseid"
+		 value="{{ r.id }}">
+	  {{ r.score }}%
+	  <a href="http://musicbrainz.org/artist/{{ r.artist.id }}.html">
+	    <strong>{{ r.artist.name|escape }}</strong></a>,
+	  <input name="title" value="{{ r.title|escape }}">
+	  <a href="http://musicbrainz.org/release-group/{{ r.id }}.html">
+	    {{ r.type }}
+	  </a>
+	</form>
+      {% endfor %}
   </body>
 </html>
