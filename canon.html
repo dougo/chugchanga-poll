@@ -10,6 +10,11 @@
         {{ v.ballot.voter.name }} ({{ v.ballot.year }}):
         {{ v.category }} {{ v.rank }}.
         {% include "vote-view.html" %}<br>
+        {% if v.release %}
+          Current canonicalization:
+          <strong>{{ v.release.artist.name }}</strong>,
+          <cite>{{ v.release.title }}</cite><br>
+	{% endif %}
         <form action="" method="post">
           {% for r in releases %}
 	    <input type="radio" name="release" value="{{ r.index }}">
