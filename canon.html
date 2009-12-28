@@ -14,6 +14,10 @@
 	<strong>{{ v.release.artist.name }}</strong>,
 	<cite>{{ v.release.title }}</cite><br>
       {% endif %}
+      <form action="" method="get">
+	<input type="submit" value="Search">
+	<input name="artist" value="{{ artist }}">
+      </form>
       {% for r in releases %}
 	<form action="" method="post">
 	  <input type="submit" value="Canonicalize">
