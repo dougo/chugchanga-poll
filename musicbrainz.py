@@ -15,9 +15,10 @@ class Resource:
         return 'http://musicbrainz.org/ws/1/' + cls.type + '/'
 
     @classmethod
-    def getElement(cls, id):
+    def getElement(cls, id, *inc):
         time.sleep(1)
-        url = cls.url + id + '?type=xml'
+        fields = { 'type': 'xml', 'inc': ' '.join(inc) }
+        url = cls.url() + id + '?' + urllib.urlencode(fields)
         doc = minidom.parse(urllib2.urlopen(url))
         return elementField(doc.documentElement, cls.type)
 
@@ -38,11 +39,19 @@ class Artist(Resource):
         self.name = elementFieldValue(elt, 'name')
         self.sortname = elementFieldValue(elt, 'sort-name')
 
+    def releaseGroups(self):
+        return ReleaseGroup.search(artistid=self.id)
+
+    @classmethod
+    def search(cls, **fields):
+        artists = cls.searchElements(**fields)
+        return [Artist(elt=elt) for elt in artists]
+
 class ReleaseGroup(Resource):
     type = 'release-group'
     def __init__(self, id=None, elt=None):
         if elt == None:
-            elt = self.getElement(id)
+            elt = self.getElement(id, 'artist')
         self.score = elt.getAttributeNS(extns, 'score')
         self.id = elt.getAttribute('id')
         self.type = elt.getAttribute('type')

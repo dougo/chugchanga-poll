@@ -257,6 +257,9 @@ class CanonPage(Page):
             self.response.out.write('No such vote: ' + ballotID + '/' + voteID)
             return
         rgs = mb.ReleaseGroup.search(title=vote.title, artist=vote.artist)
+        if not rgs:
+            for artist in mb.Artist.search(name=vote.artist):
+                rgs += artist.releaseGroups()
         self.render('canon.html', v=vote, releases=rgs)
 
     def post(self, ballotID, voteID):
