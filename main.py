@@ -288,10 +288,15 @@ class CanonPage(Page):
         else:
             artist = Artist(name=self.request.get('artist'),
                             sortname=self.request.get('sortname'),
-                            url=self.request.get('artisturl')).put()
-            vote.release = Release(artist=artist,
-                                   title=self.request.get('title'),
-                                   url=self.request.get('releaseurl')).put()
+                            url=self.request.get('artisturl',
+                                                 default_value=None))
+            artist.put()
+            release = Release(artist=artist,
+                              title=self.request.get('title'),
+                              url=self.request.get('releaseurl',
+                                                   default_value=None))
+            release.put()
+            vote.release = release
         vote.put()
         self.redirect('..')
             
