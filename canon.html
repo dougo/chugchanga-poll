@@ -52,17 +52,17 @@
 	      </td>
 	    {% else %} 
 	      <td><label for="artist">Name</label></td>
-	      <td><input name="artist" value="{{ name }}"></td>
+	      <td><input name="artist" value="{{ name|escape }}"></td>
 	    {% endif %}
 	    <td rowspan="5">
-	      <a href="http://google.com/search?q={{ name }}+{{ title }}"
+	      <a href="http://google.com/search?q={{ name|escape }}+{{ title|escape }}"
 		 target="_blank">Search Google</a>
 	    </td>
 	  </tr>
 	  <tr>
 	    {% if not artist and not mbArtist %}
 	      <td><label for="sortname">Sortname</label></td>
-	      <td><input name="sortname" value="{{ name }}"></td>
+	      <td><input name="sortname" value="{{ name|escape }}"></td>
 	    {% endif %}
 	  </tr>
 	  <tr>
@@ -74,7 +74,7 @@
 	  <tr>
 	    <td rowspan="2">Release</td>
 	    <td><label for="title">Title</label></td>
-	    <td><input name="title" value="{{ title }}"size="40"></td>
+	    <td><input name="title" value="{{ title|escape }}"size="40"></td>
 	  </tr>
 	  <tr>
 	    <td><label for="releaseurl">URL</label></td>
@@ -86,14 +86,14 @@
       <form action="" method="get">
 	<input type="submit" value="Search">
 	{% if artist or mbArtist %}
-	  <input name="title" value="{{ title }}">
+	  <input name="title" value="{{ title|escape }}">
 	  {% if artist %}
 	    <input type="hidden" name="artist.id" value="{{ artist.id }}">
 	  {% else %}
 	    <input type="hidden" name="artist.mbid" value="{{ mbArtist.id }}">
 	  {% endif %}
 	{% else %}
-	  <input name="name" value="{{ name }}">
+	  <input name="name" value="{{ name|escape }}">
 	{% endif %}
       </form>
       <br>
