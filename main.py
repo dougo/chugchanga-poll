@@ -274,7 +274,16 @@ class CanonPage(Page):
 
     def post(self, ballotID, voteID):
         vote = self.getVote(ballotID, voteID)
-        vote.release = Release.get(self.request.get('releaseid'))
+        id = self.request.get('releaseid', default_value=None)
+        if id:
+            vote.release = Release.get(id)
+        else:
+            artist = Artist(name=self.request.get('artist'),
+                            sortname=self.request.get('sortname'),
+                            url=self.request.get('artisturl')).put()
+            vote.release = Release(artist=artist,
+                                   title=self.request.get('title'),
+                                   url=self.request.get('releaseurl')).put()
         vote.put()
         self.redirect('..')
             

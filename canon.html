@@ -14,10 +14,43 @@
 	<strong>{{ v.release.artist.name }}</strong>,
 	<cite>{{ v.release.title }}</cite><br>
       {% endif %}
+      <form action="" method="post">
+	<table>
+	  <tr>
+	    <td rowspan="5"><input type="submit" value="New release"></td>
+	    <td rowspan="3">Artist</td>
+	    <td><label for="artist">Name</label></td>
+	    <td><input name="artist" value="{{ artist }}"></td>
+	    <td rowspan="5">
+	      <a href="http://google.com/search?q={{ artist }}+{{ v.title }}"
+		 target="_blank">Search Google</a>
+	    </td>
+	  </tr>
+	  <tr>
+	    <td><label for="sortname">Sortname</label></td>
+	    <td><input name="sortname" value="{{ artist }}"></td>
+	  </tr>
+	  <tr>
+	    <td><label for="artisturl">URL</label></td>
+	    <td><input name="artisturl" size="40"></td>
+	  </tr>
+	  <tr>
+	    <td rowspan="2">Release</td>
+	    <td><label for="title">Title</label></td>
+	    <td><input name="title" value="{{ v.title }}"size="40"></td>
+	  </tr>
+	  <tr>
+	    <td><label for="releaseurl">URL</label></td>
+	    <td><input name="releaseurl" size="40"></td>
+	  </tr>
+	</table>
+      </form>
+      <br>
       <form action="" method="get">
 	<input type="submit" value="Search">
 	<input name="artist" value="{{ artist }}">
       </form>
+      <br>
       {% for a in artists %}
 	<form action="" method="get">
 	  <input type="submit" value="Use this artist">
