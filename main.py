@@ -12,6 +12,7 @@ from django.utils import simplejson
 from models import Voter, Year, Ballot, Vote, Release, Artist, Globals
 import musicbrainz
 mb = musicbrainz
+import logging
 
 class Page(webapp.RequestHandler):
     def render(self, template_file, **template_values):
@@ -257,24 +258,46 @@ class CanonPage(Page):
             self.response.out.write('No such vote: ' + ballotID + '/' + voteID)
             return
         render = dict(v=vote)
-        render['releases'] = [r for r in Release.gql('WHERE title = :1',
-                                                     vote.title)
-                              if r.key() != vote.release.key()]
-        search = dict(title=vote.title)
-        artistid = self.request.get('artistid', default_value=None)
+        mbArtistid = self.request.get('artist.mbid', default_value=None)
+        artistid = self.request.get('artist.id', default_value=None)
+        artistName = self.request.get('artistName', default_value=vote.artist)
+        artist = None
         if artistid:
-            mbArtist = mb.Artist(artistid)
-            search['artistid'] = artistid
-            render['artist'] = mbArtist.name
-        else:
-            artist = self.request.get('artist', default_value=vote.artist)
-            search['artist'] = artist
+            artist = Artist.get_by_id(int(artistid))
+        elif mbArtistid:
+            artist = Artist.gql('WHERE mbid = :1', mbArtistid).get()
+        if artist:
+            if artist.mbid:
+                mbArtistid = artist.mbid
+            artistName = artist.name
             render['artist'] = artist
+            render['releases'] = [r for r in artist.release_set
+                                  if not vote.release or
+                                  r.key() != vote.release.key()]
+        else:
+            if mbArtistid:
+                artist = mb.Artist(mbArtistid)
+                render['artist'] = artist
+                render['mbArtist'] = artist
+            render['artists'] = [a for a in Artist.gql('WHERE name = :1',
+                                                       artistName)]
+            render['releases'] = [r for r in Release.gql('WHERE title = :1',
+                                                         vote.title)
+                                  if not vote.release or
+                                  r.key() != vote.release.key()]
+        render['artistName'] = artistName
+        search = dict(title=vote.title)
+        if mbArtistid:
+            search['artistid'] = mbArtistid
+        else:
+            search['artist'] = artistName
         rgs = mb.ReleaseGroup.search(**search)
         if rgs:
             render['rgs'] = rgs
+        elif mbArtistid:
+            render['rgs'] = mb.ReleaseGroup.search(artistid=mbArtistid)
         else:
-            render['artists'] = mb.Artist.search(name=artist)
+            render['mbArtists'] = mb.Artist.search(name=artistName)
         self.render('canon.html', **render)
 
     def post(self, ballotID, voteID):
@@ -286,15 +309,21 @@ class CanonPage(Page):
         elif mbid:
             vote.release = Release.get(mbid)
         else:
-            artist = Artist(name=self.request.get('artist'),
-                            sortname=self.request.get('sortname'))
-            artisturl = self.request.get('artisturl', default_value=None)
-            if artisturl:
-                artist.url = artisturl
-            artist.put()
-            release = Release(artist=artist,
-                              title=self.request.get('title'))
-            releaseurl=self.request.get('releaseurl', default_value=None)
+            id = self.request.get('artist.id', default_value=None)
+            mbid = self.request.get('artist.mbid', default_value=None)
+            if id:
+                artist = db.Key.from_path(Artist.kind(), int(id))
+            elif mbid:
+                artist = Artist.get(mbid)
+            else:
+                artist = Artist(name=self.request.get('artist'),
+                                sortname=self.request.get('sortname'))
+                artisturl = self.request.get('artisturl', default_value=None)
+                if artisturl:
+                    artist.url = artisturl
+                artist.put()
+            release = Release(artist=artist, title=self.request.get('title'))
+            releaseurl = self.request.get('releaseurl', default_value=None)
             if releaseurl:
                 release.url = releaseurl
             release.put()

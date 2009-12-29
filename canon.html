@@ -14,6 +14,13 @@
 	<strong>{{ v.release.artist.name }}</strong>,
 	<cite>{{ v.release.title }}</cite><br>
       {% endif %}
+      {% for a in artists %}
+	<form action="" method="get">
+	  <input type="submit" value="Use this artist">
+	  <input type="hidden" name="artist.id" value="{{ a.key.id }}">
+	  <strong>{{ a.name|escape }}</strong>
+	</form>
+      {% endfor %}
       {% for r in releases %}
 	<form action="" method="post">
 	  <input type="submit" value="Use this release">
@@ -28,20 +35,32 @@
 	  <tr>
 	    <td rowspan="5"><input type="submit" value="New release"></td>
 	    <td rowspan="3">Artist</td>
-	    <td><label for="artist">Name</label></td>
-	    <td><input name="artist" value="{{ artist }}"></td>
+	    {% if artist %}
+	      <td rowspan="3" colspan="2">
+		<strong>{{ artist.name }}</strong>
+		<input type="hidden" value="{{ artist.id }}"
+		       name="artist.{% if mbArtist %}mb{% endif %}id">
+	      </td>
+	    {% else %}
+	      <td><label for="artist">Name</label></td>
+	      <td><input name="artist" value="{{ artistName }}"></td>
+	    {% endif %}
 	    <td rowspan="5">
-	      <a href="http://google.com/search?q={{ artist }}+{{ v.title }}"
+	      <a href="http://google.com/search?q={{ artistName }}+{{ v.title }}"
 		 target="_blank">Search Google</a>
 	    </td>
 	  </tr>
 	  <tr>
-	    <td><label for="sortname">Sortname</label></td>
-	    <td><input name="sortname" value="{{ artist }}"></td>
+	    {% if not artist %}
+	      <td><label for="sortname">Sortname</label></td>
+	      <td><input name="sortname" value="{{ artistName }}"></td>
+	    {% endif %}
 	  </tr>
 	  <tr>
-	    <td><label for="artisturl">URL</label></td>
-	    <td><input name="artisturl" size="40"></td>
+	    {% if not artist %}
+	      <td><label for="artisturl">URL</label></td>
+	      <td><input name="artisturl" size="40"></td>
+	    {% endif %}
 	  </tr>
 	  <tr>
 	    <td rowspan="2">Release</td>
@@ -57,13 +76,13 @@
       <br>
       <form action="" method="get">
 	<input type="submit" value="Search">
-	<input name="artist" value="{{ artist }}">
+	<input name="artistName" value="{{ artistName }}">
       </form>
       <br>
-      {% for a in artists %}
+      {% for a in mbArtists %}
 	<form action="" method="get">
 	  <input type="submit" value="Use this artist">
-	  <input type="hidden" name="artistid" value="{{ a.id }}">
+	  <input type="hidden" name="artist.mbid" value="{{ a.id }}">
 	  {{ a.score }}%
 	  <a href="http://musicbrainz.org/artist/{{ a.id }}.html">
 	    <strong>{{ a.name|escape }}</strong></a>
