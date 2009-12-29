@@ -278,7 +278,7 @@ class CanonPage(Page):
         render['title'] = title
         mbArtistid = self.request.get('artist.mbid', default_value=None)
         artistid = self.request.get('artist.id', default_value=None)
-        artistName = self.request.get('artistName', default_value=vote.artist)
+        name = self.request.get('name', default_value=vote.artist)
         artist = None
         if artistid:
             artist = Artist.get_by_id(int(artistid))
@@ -287,7 +287,7 @@ class CanonPage(Page):
         if artist:
             if artist.mbid:
                 mbArtistid = artist.mbid
-            artistName = artist.name
+            name = artist.name
             render['artist'] = artist
             render['releases'] = [r for r in artist.release_set
                                   if not vote.release or
@@ -296,25 +296,24 @@ class CanonPage(Page):
             if mbArtistid:
                 artist = mb.Artist(mbArtistid)
                 render['mbArtist'] = artist
-            render['artists'] = [a for a in Artist.gql('WHERE name = :1',
-                                                       artistName)]
-            render['releases'] = [r for r in Release.gql('WHERE title = :1',
-                                                         title)
+            render['artists'] = [a for a in Artist.gql('WHERE name = :1', name)]
+            render['releases'] = [r for r in
+                                  Release.gql('WHERE title = :1', title)
                                   if not vote.release or
                                   r.key() != vote.release.key()]
-        render['artistName'] = artistName
+        render['name'] = name
         search = dict(title=title)
         if mbArtistid:
             search['artistid'] = mbArtistid
         else:
-            search['artist'] = artistName
+            search['artist'] = name
         rgs = mb.ReleaseGroup.search(**search)
         if rgs:
             render['rgs'] = rgs
         elif mbArtistid:
             render['rgs'] = mb.ReleaseGroup.search(artistid=mbArtistid)
         else:
-            render['mbArtists'] = mb.Artist.search(name=artistName)
+            render['mbArtists'] = mb.Artist.search(name=name)
         self.render('canon.html', **render)
 
     def post(self, ballotID, voteID):

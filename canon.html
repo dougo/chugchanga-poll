@@ -51,17 +51,17 @@
 	      </td>
 	    {% else %} 
 	      <td><label for="artist">Name</label></td>
-	      <td><input name="artist" value="{{ artistName }}"></td>
+	      <td><input name="artist" value="{{ name }}"></td>
 	    {% endif %}
 	    <td rowspan="5">
-	      <a href="http://google.com/search?q={{ artistName }}+{{ title }}"
+	      <a href="http://google.com/search?q={{ name }}+{{ title }}"
 		 target="_blank">Search Google</a>
 	    </td>
 	  </tr>
 	  <tr>
 	    {% if not artist and not mbArtist %}
 	      <td><label for="sortname">Sortname</label></td>
-	      <td><input name="sortname" value="{{ artistName }}"></td>
+	      <td><input name="sortname" value="{{ name }}"></td>
 	    {% endif %}
 	  </tr>
 	  <tr>
@@ -92,7 +92,7 @@
 	    <input type="hidden" name="artist.mbid" value="{{ mbArtist.id }}">
 	  {% endif %}
 	{% else %}
-	  <input name="artistName" value="{{ artistName }}">
+	  <input name="name" value="{{ name }}">
 	{% endif %}
       </form>
       <br>
