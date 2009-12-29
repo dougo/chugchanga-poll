@@ -274,6 +274,8 @@ class CanonPage(Page):
             self.response.out.write('No such vote: ' + ballotID + '/' + voteID)
             return
         render = dict(v=vote)
+        title = self.request.get('title', default_value=vote.title)
+        render['title'] = title
         mbArtistid = self.request.get('artist.mbid', default_value=None)
         artistid = self.request.get('artist.id', default_value=None)
         artistName = self.request.get('artistName', default_value=vote.artist)
@@ -297,11 +299,11 @@ class CanonPage(Page):
             render['artists'] = [a for a in Artist.gql('WHERE name = :1',
                                                        artistName)]
             render['releases'] = [r for r in Release.gql('WHERE title = :1',
-                                                         vote.title)
+                                                         title)
                                   if not vote.release or
                                   r.key() != vote.release.key()]
         render['artistName'] = artistName
-        search = dict(title=vote.title)
+        search = dict(title=title)
         if mbArtistid:
             search['artistid'] = mbArtistid
         else:
