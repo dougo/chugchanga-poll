@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <title>{{ voter.name }}</title>
+  </head>
+  <body>
+    <h1><hr>
+      {% if voter.url %}
+        <a href="{{ voter.url }}">
+      {% endif %}
+      {{ voter.name }}
+      {% if voter.url %}
+	</a>
+      {% endif %}
+    </h1>
+
+    {% for b in voter.ballot_set %}
+      {% if not b.anonymous %}
+        <p><a href="/ballot/{{ b.key.id }}">{{ b.year }}</a>
+      {% endif %}
+    {% endfor %}
+  </body>
+</html>

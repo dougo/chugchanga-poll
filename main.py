@@ -19,8 +19,8 @@ class Page(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), template_file)
         self.response.out.write(template.render(path, template_values))
 
-# Base class for voter pages.
-class VoterPage(Page):
+# Base class for member pages.
+class MemberPage(Page):
     # Returns:
     #  'invalid': if the user has not entered the secret word
     #  'closed': if there are no poll years currently open
@@ -56,7 +56,7 @@ class VoterPage(Page):
                                  self.voter, self.year).get()
         return None
 
-class ProfilePage(VoterPage):
+class ProfilePage(MemberPage):
     def get(self):
         if self.validate():
             return
@@ -70,13 +70,13 @@ class ProfilePage(VoterPage):
         self.voter.put()
         self.redirect('..')
         
-class MainPage(VoterPage):
+class VotePage(MemberPage):
     # Returns:
     #  False: and displays the front page if the user hasn't entered
     #    the secret word, or the closed page if no polls are open
     #  True: otherwise
     def validate(self):
-        status = VoterPage.validate(self)
+        status = MemberPage.validate(self)
         if status == 'invalid':
             self.frontPage()
             return False
@@ -180,7 +180,7 @@ class MainPage(VoterPage):
                                 artist=artist, title=title, comments=comments)
                     vote.put()
 
-class AjaxHandler(VoterPage):
+class AjaxHandler(MemberPage):
     def post(self):
         status = self.validate()
         if status:
@@ -227,6 +227,14 @@ class ResultsPage(Page):
         ballots = [(y, list(y.nonEmptyBallots())) for y in years]
         self.render('results.html', ballots=ballots)
 
+class VoterPage(Page):
+    def get(self, id):
+        voter = Voter.get_by_id(int(id))
+        if not voter:
+            self.response.out.write('No such voter: ' + id)
+            return
+        self.render('voter.html', voter=voter)
+
 class BallotPage(Page):
     def get(self, id):
         ballot = Ballot.get_by_id(int(id))
@@ -238,6 +246,14 @@ class BallotPage(Page):
         votes = ballot.getVotesDict()
         self.render('ballot.html', name=name, ballot=ballot, votes=votes)
         
+class ArtistPage(Page):
+    def get(self, id):
+        artist = Artist.get_by_id(int(id))
+        if artist:
+            self.render('artist.html', artist=artist)
+        else:
+            self.response.out.write('No such artist: ' + id)
+
 class CanonIndexPage(Page):
     def get(self):
         uncanonicalized = Vote.gql('WHERE release = :1 ORDER BY artist', None)
@@ -346,11 +362,13 @@ class BackupPage(Page):
         self.response.out.write('</chugchanga-poll>')
         
 
-application = webapp.WSGIApplication([('/members/', MainPage),
+application = webapp.WSGIApplication([('/members/', VotePage),
                                       ('/members/profile/', ProfilePage),
                                       ('/members/ajax/', AjaxHandler),
                                       ('/', ResultsPage),
-                                      ('/ballot/([0-9]+)/', BallotPage),
+                                      ('/ballot/([0-9]+)', BallotPage),
+                                      ('/voter/([0-9]+)', VoterPage),
+                                      ('/artist/([0-9]+)', ArtistPage),
                                       ('/admin/canon/', CanonIndexPage),
                                       ('/admin/canon/([0-9]+)/([0-9]+)', CanonPage),
                                       ('/admin/backup', BackupPage),

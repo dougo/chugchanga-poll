@@ -1,0 +1,52 @@
+<html>
+  <head>
+    <title>{{ artist.name }}</title>
+  </head>
+  <body>
+    <h1><hr>
+      {% if artist.mbid or artist.url %}
+        <a href=
+	   {% if artist.mbid %}
+	     "http://musicbrainz.org/artist/{{ artist.mbid }}.html"
+	   {% else %}
+	     "{{ artist.url }}"
+	   {% endif %} >
+      {% endif %}
+      {{ artist.name }}
+      {% if artist.mbid or artist.url %}
+	</a>
+      {% endif %}
+    </h1>
+
+    {% for r in artist.release_set %}
+      <p>
+	<a name="{{ r.key.id }}"></a>
+	{% if r.mbid or r.url %}
+	<a href=
+	   {% if r.mbid %}
+	     "http://musicbrainz.org/release-group/{{ r.mbid }}.html"
+	   {% else %}
+	     "{{ r.url }}"
+	   {% endif %}>
+	<cite>{{ r.title }}</cite>
+	{% endif %}
+	{% if r.mbid or r.url %}</a>{% endif %}<br>
+	<ul>
+	  {% for v in r.vote_set %}
+	    <li>
+	      <a href="/ballot/{{ v.ballot.key.id }}#{{ v.category }}-{{ v.rank }}">
+		{% if v.ballot.anonymous %}
+		  Anonymous ballot #{{ v.ballot.key.id }}
+		{% else %}
+		  {{ v.ballot.voter.name }}
+		{% endif %}
+		({{ v.ballot.year }}):
+		{{ v.category }} #{{ v.rank }}</a>
+	      {% if v.comments %}
+		<br>{{ v.comments }}
+	      {% endif %}
+	  {% endfor %}
+	</ul>
+    {% endfor %}
+  </body>
+</html>

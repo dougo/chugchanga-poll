@@ -18,15 +18,18 @@
 	<form action="" method="get">
 	  <input type="submit" value="Use this artist">
 	  <input type="hidden" name="artist.id" value="{{ a.key.id }}">
-	  <strong>{{ a.name|escape }}</strong>
+	  <a href="/artist/{{ a.key.id }}">
+	    <strong>{{ a.name|escape }}</strong></a>
 	</form>
       {% endfor %}
       {% for r in releases %}
 	<form action="" method="post">
 	  <input type="submit" value="Use this release">
 	  <input type="hidden" name="release.id" value="{{ r.key.id }}">
-	  <strong>{{ r.artist.name|escape }}</strong>,
-	  <cite>{{ r.title|escape }}</cite>
+	  <a href="/artist/{{ r.artist.key.id }}">
+	    <strong>{{ r.artist.name|escape }}</strong></a>,
+	  <a href="/artist/{{ r.artist.key.id }}#{{ r.key.id }}">
+	    <cite>{{ r.title|escape }}</cite></a>
 	</form>
 	<br>
       {% endfor %}
@@ -36,13 +39,14 @@
 	    <td rowspan="5"><input type="submit" value="New release"></td>
 	    <td rowspan="3">Artist</td>
 	    {% if artist or mbArtist %}
-	      <td rowspan="3" colspan="2">
-		{% if Artist %}
-		  <strong>{{ artist.name }}</strong>
+	      <td rowspan="3"></td>
+	      <td rowspan="3">
+		{% if artist %}
+		  <a href="/artist/{{ artist.key.id }}">
+		    <strong>{{ artist.name }}</strong></a>
 		{% else %}
 		  <a href="http://musicbrainz.org/artist/{{mbArtist.id}}.html">
-		    <strong>{{ mbArtist.name }}</strong>
-		  </a>
+		    <strong>{{ mbArtist.name }}</strong></a>
 		{% endif %}
 	      </td>
 	    {% else %} 

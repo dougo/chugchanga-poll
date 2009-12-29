@@ -5,19 +5,27 @@
     </title>
   </head>
   <body>
-    <h1><hr>{{ name }}'s Favorite Releases of {{ ballot.year }}</h1>
+    <h1><hr>
+      {% if not ballot.anonymous %}
+        <a href="/voter/{{ ballot.voter.key.id }}">
+      {% endif %}
+      {{ name }}{% if not ballot.anonymous %}</a>{% endif %}'s
+      Favorite Releases of {{ ballot.year }}
+    </h1>
     {% if ballot.preamble %}
       <p>{{ ballot.preamble|linebreaksbr }}
     {% endif %}
     <p><ol>
     {% for v in votes.favorite %}
-      <li>{% include "vote-view.html" %}
+      <li><a name="favorite-{{ v.rank }}"></a>
+	{% include "vote-view.html" %}
     {% endfor %}</ol>
     {% if votes.honorable.count %}
       <h3>Honorable mentions</h3>
       <ol>
 	{% for v in votes.honorable %}
-          <li>{% include "vote-view.html" %}
+          <li><a name="honorable-{{ v.rank }}"></a>
+	    {% include "vote-view.html" %}
 	{% endfor %}
       </ol>
     {% endif %}
@@ -25,7 +33,8 @@
       <h3>Other notable releases</h3>
       <ol>
 	{% for v in votes.notable %}
-	  <li>{% include "vote-view.html" %}
+	  <li><a name="notable-{{ v.rank }}"></a>
+	    {% include "vote-view.html" %}
 	{% endfor %}
       </ol>
     {% endif %}

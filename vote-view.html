@@ -1,4 +1,9 @@
-<strong>{{ v.artist }}</strong>{% if v.artist and v.title %}, {% endif %}<cite>{{ v.title }}</cite><br>
+{% if v.release %}<a href="/artist/{{ v.release.artist.key.id }}">{% endif %}
+<strong>{{ v.artist }}</strong>{% if v.release %}</a>{% endif %}{% if v.artist and v.title %}, {% endif %}
+{% if v.release %}<a href="/artist/{{ v.release.artist.key.id }}#{{ v.release.key.id }}">{% endif %}
+<cite>{{ v.title }}</cite>
+{% if v.release %}</a>{% endif %}
+<br>
 {% if v.comments %}
   {{ v.comments|linebreaksbr }}<br>
 {% endif %}
