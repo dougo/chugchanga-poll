@@ -277,7 +277,6 @@ class CanonPage(Page):
         else:
             if mbArtistid:
                 artist = mb.Artist(mbArtistid)
-                render['artist'] = artist
                 render['mbArtist'] = artist
             render['artists'] = [a for a in Artist.gql('WHERE name = :1',
                                                        artistName)]

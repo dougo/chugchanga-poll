@@ -35,13 +35,17 @@
 	  <tr>
 	    <td rowspan="5"><input type="submit" value="New release"></td>
 	    <td rowspan="3">Artist</td>
-	    {% if artist %}
+	    {% if artist or mbArtist %}
 	      <td rowspan="3" colspan="2">
-		<strong>{{ artist.name }}</strong>
-		<input type="hidden" value="{{ artist.id }}"
-		       name="artist.{% if mbArtist %}mb{% endif %}id">
+		{% if Artist %}
+		  <strong>{{ artist.name }}</strong>
+		{% else %}
+		  <a href="http://musicbrainz.org/artist/{{mbArtist.id}}.html">
+		    <strong>{{ mbArtist.name }}</strong>
+		  </a>
+		{% endif %}
 	      </td>
-	    {% else %}
+	    {% else %} 
 	      <td><label for="artist">Name</label></td>
 	      <td><input name="artist" value="{{ artistName }}"></td>
 	    {% endif %}
@@ -51,13 +55,13 @@
 	    </td>
 	  </tr>
 	  <tr>
-	    {% if not artist %}
+	    {% if not artist and not mbArtist %}
 	      <td><label for="sortname">Sortname</label></td>
 	      <td><input name="sortname" value="{{ artistName }}"></td>
 	    {% endif %}
 	  </tr>
 	  <tr>
-	    {% if not artist %}
+	    {% if not artist and not mbArtist %}
 	      <td><label for="artisturl">URL</label></td>
 	      <td><input name="artisturl" size="40"></td>
 	    {% endif %}
