@@ -256,12 +256,21 @@ class CanonPage(Page):
         if not vote:
             self.response.out.write('No such vote: ' + ballotID + '/' + voteID)
             return
-        artist = self.request.get('artist', default_value=vote.artist)
-        rgs = mb.ReleaseGroup.search(title=vote.title, artist=artist)
+        search = { 'title': vote.title }
+        artistid = self.request.get('artistid', default_value=None)
+        if artistid:
+            mbArtist = mb.Artist(artistid)
+            artist = mbArtist.name
+            search['artistid'] = artistid
+        else:
+            artist = self.request.get('artist', default_value=vote.artist)
+            search['artist'] = artist
+        rgs = mb.ReleaseGroup.search(**search)
+        artists = []
         if not rgs:
-            for mbArtist in mb.Artist.search(name=artist):
-                rgs += mbArtist.releaseGroups()
-        self.render('canon.html', v=vote, artist=artist, releases=rgs)
+            artists = mb.Artist.search(name=artist)
+        self.render('canon.html', v=vote, artist=artist, releases=rgs,
+                    artists=artists)
 
     def post(self, ballotID, voteID):
         vote = self.getVote(ballotID, voteID)
