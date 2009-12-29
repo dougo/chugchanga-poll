@@ -329,7 +329,12 @@ class CanonPage(Page):
             release.put()
             vote.release = release
         vote.put()
-        self.redirect('..')
+        next = Vote.gql('WHERE release = :1 ORDER BY artist', None).get()
+        if next:
+            key = next.key()
+            self.redirect('../%d/%d' % (key.parent().id(), key.id()))
+        else:
+            self.redirect('..')
             
 class BackupPage(Page):
     def get(self):
