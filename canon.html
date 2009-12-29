@@ -101,7 +101,8 @@
 	  <input type="submit" value="Use this artist">
 	  <input type="hidden" name="artist.mbid" value="{{ a.id }}">
 	  {{ a.score }}%
-	  <a href="http://musicbrainz.org/artist/{{ a.id }}.html">
+	  <a href="http://musicbrainz.org/artist/{{ a.id }}.html"
+	     target="_blank">
 	    <strong>{{ a.name|escape }}</strong></a>
 	    {% if a.disambiguation %}
 	      [{{ a.disambiguation|escape }}]
@@ -113,12 +114,13 @@
 	  <input type="submit" value="Use this release">
 	  <input type="hidden" name="release.mbid" value="{{ r.id }}">
 	  {{ r.score }}%
-	  <a href="http://musicbrainz.org/artist/{{ r.artist.id }}.html">
+	  <a href="http://musicbrainz.org/artist/{{ r.artist.id }}.html"
+	     target="_blank">
 	    <strong>{{ r.artist.name|escape }}</strong></a>,
-	  <a href="http://musicbrainz.org/release-group/{{ r.id }}.html">
-	    <cite>{{ r.title|escape }}</cite>
-	    {{ r.type }}
-	  </a>
+	  <a href="http://musicbrainz.org/release-group/{{ r.id }}.html"
+	     target="_blank">
+	    <cite>{{ r.title|escape }}</cite></a>
+	  {{ r.type }}
 	</form>
       {% endfor %}
   </body>

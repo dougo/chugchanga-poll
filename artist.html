@@ -28,8 +28,8 @@
 	   {% else %}
 	     "{{ r.url }}"
 	   {% endif %}>
-	<cite>{{ r.title }}</cite>
 	{% endif %}
+	<cite>{{ r.title }}</cite>
 	{% if r.mbid or r.url %}</a>{% endif %}<br>
 	<ul>
 	  {% for v in r.vote_set %}
