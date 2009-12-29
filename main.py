@@ -256,27 +256,35 @@ class CanonPage(Page):
         if not vote:
             self.response.out.write('No such vote: ' + ballotID + '/' + voteID)
             return
-        search = { 'title': vote.title }
+        render = dict(v=vote)
+        render['releases'] = [r for r in Release.gql('WHERE title = :1',
+                                                     vote.title)
+                              if r.key() != vote.release.key()]
+        search = dict(title=vote.title)
         artistid = self.request.get('artistid', default_value=None)
         if artistid:
             mbArtist = mb.Artist(artistid)
-            artist = mbArtist.name
             search['artistid'] = artistid
+            render['artist'] = mbArtist.name
         else:
             artist = self.request.get('artist', default_value=vote.artist)
             search['artist'] = artist
+            render['artist'] = artist
         rgs = mb.ReleaseGroup.search(**search)
-        artists = []
-        if not rgs:
-            artists = mb.Artist.search(name=artist)
-        self.render('canon.html', v=vote, artist=artist, releases=rgs,
-                    artists=artists)
+        if rgs:
+            render['rgs'] = rgs
+        else:
+            render['artists'] = mb.Artist.search(name=artist)
+        self.render('canon.html', **render)
 
     def post(self, ballotID, voteID):
         vote = self.getVote(ballotID, voteID)
-        id = self.request.get('releaseid', default_value=None)
+        id = self.request.get('release.id', default_value=None)
+        mbid = self.request.get('release.mbid', default_value=None)
         if id:
-            vote.release = Release.get(id)
+            vote.release = db.Key.from_path(Release.kind(), int(id))
+        elif mbid:
+            vote.release = Release.get(mbid)
         else:
             artist = Artist(name=self.request.get('artist'),
                             sortname=self.request.get('sortname'),

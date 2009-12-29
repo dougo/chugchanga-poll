@@ -14,6 +14,15 @@
 	<strong>{{ v.release.artist.name }}</strong>,
 	<cite>{{ v.release.title }}</cite><br>
       {% endif %}
+      {% for r in releases %}
+	<form action="" method="post">
+	  <input type="submit" value="Use this release">
+	  <input type="hidden" name="release.id" value="{{ r.key.id }}">
+	  <strong>{{ r.artist.name|escape }}</strong>,
+	  <cite>{{ r.title|escape }}</cite>
+	</form>
+	<br>
+      {% endfor %}
       <form action="" method="post">
 	<table>
 	  <tr>
@@ -63,10 +72,10 @@
 	    {% endif %}
 	</form>
       {% endfor %}
-      {% for r in releases %}
+      {% for r in rgs %}
 	<form action="" method="post">
 	  <input type="submit" value="Use this release">
-	  <input type="hidden" name="releaseid" value="{{ r.id }}">
+	  <input type="hidden" name="release.mbid" value="{{ r.id }}">
 	  {{ r.score }}%
 	  <a href="http://musicbrainz.org/artist/{{ r.artist.id }}.html">
 	    <strong>{{ r.artist.name|escape }}</strong></a>,
