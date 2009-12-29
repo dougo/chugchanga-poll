@@ -287,14 +287,16 @@ class CanonPage(Page):
             vote.release = Release.get(mbid)
         else:
             artist = Artist(name=self.request.get('artist'),
-                            sortname=self.request.get('sortname'),
-                            url=self.request.get('artisturl',
-                                                 default_value=None))
+                            sortname=self.request.get('sortname'))
+            artisturl = self.request.get('artisturl', default_value=None)
+            if artisturl:
+                artist.url = artisturl
             artist.put()
             release = Release(artist=artist,
-                              title=self.request.get('title'),
-                              url=self.request.get('releaseurl',
-                                                   default_value=None))
+                              title=self.request.get('title'))
+            releaseurl=self.request.get('releaseurl', default_value=None)
+            if releaseurl:
+                release.url = releaseurl
             release.put()
             vote.release = release
         vote.put()
