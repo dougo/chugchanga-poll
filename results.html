@@ -8,9 +8,7 @@
         {{ b.0.year }}{% if b.0.votingIsOpen %} (voting is open){% endif %}:
         {{ b.1|length }} ballot{{ b.1|length|pluralize }}<br>
         {% for b in b.1 %}
-          <a href="ballot/{{ b.key.id }}">
-	    {% if b.anonymous %}Anonymous Ballot {{ b.key.id }}{% else %}
-	    {{ b.voter.name }}{% endif %}</a>
+          <a href="ballot/{{ b.key.id }}">{{ b.name }}</a>
 	  <br>
         {% endfor %}
     {% endfor %}
