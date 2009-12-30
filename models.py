@@ -46,6 +46,11 @@ class Ballot(db.Model):
     honorable = db.IntegerProperty(default=0)
     notable = db.IntegerProperty(default=0)
 
+    def name(self):
+        if self.anonymous:
+            return 'Anonymous Chugchanga-L Member #' + str(self.key().id())
+        return self.voter.name
+
     categories = ['favorite', 'honorable', 'notable']
 
     # Returns True iff the ballot has no votes.
@@ -93,6 +98,9 @@ class Artist(db.Model):
     mbid = db.StringProperty()  # MusicBrainz identifier
     url = db.LinkProperty()     # other URL, if not in MusicBrainz
 
+    def releases(self):
+        return Release.gql('WHERE artist = :1 ORDER BY title', self)
+
     @staticmethod
     def get(mbid):
         artist = Artist.gql('WHERE mbid = :1', mbid).get()
@@ -109,6 +117,11 @@ class Release(db.Model):
     title = db.StringProperty(required=True)
     mbid = db.StringProperty()
     url = db.LinkProperty()
+
+    def votes(self):
+        votes = list(self.vote_set)
+        votes.sort(key=lambda v: (v.ballot.year, v.category, v.ballot.name()))
+        return votes
 
     @staticmethod
     def get(mbid):

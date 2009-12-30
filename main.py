@@ -241,10 +241,8 @@ class BallotPage(Page):
         if not ballot:
             self.response.out.write('No such ballot: ' + id)
             return
-        name = 'Anonymous Chugchanga Member #' + id \
-            if ballot.anonymous else ballot.voter.name
         votes = ballot.getVotesDict()
-        self.render('ballot.html', name=name, ballot=ballot, votes=votes)
+        self.render('ballot.html', ballot=ballot, votes=votes)
         
 class ArtistPage(Page):
     def get(self, id):

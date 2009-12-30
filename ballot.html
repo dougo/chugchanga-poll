@@ -1,7 +1,7 @@
 <html>
   <head>
     <title>
-      {{ name }}'s Favorite Releases of {{ ballot.year }}
+      {{ ballot.name }}'s Favorite Releases of {{ ballot.year }}
     </title>
   </head>
   <body>
@@ -9,7 +9,7 @@
       {% if not ballot.anonymous %}
         <a href="/voter/{{ ballot.voter.key.id }}">
       {% endif %}
-      {{ name }}{% if not ballot.anonymous %}</a>{% endif %}'s
+      {{ ballot.name }}{% if not ballot.anonymous %}</a>{% endif %}'s
       Favorite Releases of {{ ballot.year }}
     </h1>
     {% if ballot.preamble %}
