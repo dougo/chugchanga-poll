@@ -4,33 +4,35 @@
   </head>
   <body>
     <h1><hr>
-      {% if artist.mbid or artist.url %}
-        <a href=
-	   {% if artist.mbid %}
-	     "http://musicbrainz.org/artist/{{ artist.mbid }}.html"
-	   {% else %}
-	     "{{ artist.url }}"
-	   {% endif %} >
-      {% endif %}
-      {{ artist.name }}
-      {% if artist.mbid or artist.url %}
-	</a>
-      {% endif %}
+      {% if artist.mbid %}
+        <a href="http://musicbrainz.org/artist/{{ artist.mbid }}.html"
+	   title="Show artist at MusicBrainz">
+	  <img src="http://musicbrainz.org/images/aicon_lg.png"
+	       alt="artist"
+	       style="vertical-align: bottom; border: 0px; margin-right: 2px;"
+	       /><b>{{ artist.name|escape }}</b></a>
+      {% else %} {% if artist.url %}
+	<a href="{{ artist.url }}"><b>{{ artist.name|escape }}</b></a>
+      {% else %}
+	<b>{{ artist.name|escape }}</b>
+      {% endif %} {% endif %}
     </h1>
 
     {% for r in artist.release_set %}
       <p>
 	<a name="{{ r.key.id }}"></a>
-	{% if r.mbid or r.url %}
-	<a href=
-	   {% if r.mbid %}
-	     "http://musicbrainz.org/release-group/{{ r.mbid }}.html"
-	   {% else %}
-	     "{{ r.url }}"
-	   {% endif %}>
-	{% endif %}
-	<cite>{{ r.title }}</cite>
-	{% if r.mbid or r.url %}</a>{% endif %}<br>
+	{% if r.mbid %}
+	<a href="http://musicbrainz.org/release-group/{{ r.mbid }}.html"
+	   title="Show release-group at MusicBrainz">
+	  <img src="http://musicbrainz.org/images/entity/release-group.gif"
+	       alt="release-group"
+	       style="vertical-align: bottom; border: 0px; margin-right: 2px;"
+	       /><b>{{ r.title|escape }}</b></a>
+	{% else %} {% if r.url %}
+	  <a href="{{ r.url }}"><cite>{{ r.title|escape }}</cite></a>
+	{% else %}
+	  <cite>{{ r.title|escape }}</cite>
+	{% endif %} {% endif %}
 	<ul>
 	  {% for v in r.vote_set %}
 	    <li>
@@ -38,12 +40,12 @@
 		{% if v.ballot.anonymous %}
 		  Anonymous ballot #{{ v.ballot.key.id }}
 		{% else %}
-		  {{ v.ballot.voter.name }}
+		  {{ v.ballot.voter.name|escape }}
 		{% endif %}
 		({{ v.ballot.year }}):
 		{{ v.category }} #{{ v.rank }}</a>
 	      {% if v.comments %}
-		<br>{{ v.comments }}
+		<br>{{ v.comments|escape }}
 	      {% endif %}
 	  {% endfor %}
 	</ul>
