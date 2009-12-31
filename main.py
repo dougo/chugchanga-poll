@@ -221,11 +221,26 @@ class AjaxHandler(MemberPage):
                 self.ballot.postamble = value
             self.ballot.put()
 
-class ResultsPage(Page):
+class MainPage(Page):
     def get(self):
-        years = Year.gql('ORDER BY year DESC')
-        ballots = [(y, list(y.nonEmptyBallots())) for y in years]
-        self.render('results.html', ballots=ballots)
+        self.render('index.html', oldyears=range(1995, 2003))
+
+class ResultsPage(Page):
+    def get(self, year):
+        y = Year.gql('WHERE year = :1', int(year)).get()
+        if not y:
+            self.response.out.write('No poll results for ' + year + '.')
+            return
+        self.render('results.html', year=year)
+
+class VotersPage(Page):
+    def get(self, year):
+        y = Year.gql('WHERE year = :1', int(year)).get()
+        if not y:
+            self.response.out.write('No poll results for ' + year + '.')
+            return
+        ballots = list(y.nonEmptyBallots())
+        self.render('voters.html', year=year, ballots=ballots)
 
 class VoterPage(Page):
     def get(self, id):
@@ -364,7 +379,9 @@ class BackupPage(Page):
 application = webapp.WSGIApplication([('/members/', VotePage),
                                       ('/members/profile/', ProfilePage),
                                       ('/members/ajax/', AjaxHandler),
-                                      ('/', ResultsPage),
+                                      ('/', MainPage),
+                                      ('/([0-9]+)/', ResultsPage),
+                                      ('/([0-9]+)/voters', VotersPage),
                                       ('/ballot/([0-9]+)', BallotPage),
                                       ('/voter/([0-9]+)', VoterPage),
                                       ('/artist/([0-9]+)', ArtistPage),

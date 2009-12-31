@@ -1,16 +1,28 @@
 <html>
-  <head><title>Chugchanga-L Favorite Releases Poll Results</title></head>
+  <head>
+    <title>Chugchanga-L Favorite Releases Poll {{ year }}</title>
+  </head>
   <body>
-    <h1><hr>Chugchanga-L Favorite Releases Poll Results</h1>
+    <h1><hr><a href="voters">Chugchanga-L Members'</a>
+      Favorite Releases of {{ year }}</h1>
 
-    {% for b in ballots %}
-      <p>
-        {{ b.0.year }}{% if b.0.votingIsOpen %} (voting is open){% endif %}:
-        {{ b.1|length }} ballot{{ b.1|length|pluralize }}<br>
-        {% for b in b.1 %}
-          <a href="ballot/{{ b.key.id }}">{{ b.name }}</a>
-	  <br>
-        {% endfor %}
-    {% endfor %}
+    <p>
+      The short list:
+
+    <p>
+      The long list:
+      <ul>
+	<li> <a href="byvotes">by number of votes</a>
+	<li> <a href="voters">by voter</a>
+	<li> <a href="byartist">by artist</a>
+      </ul>
+
+    <p>
+      Some statistics:
+
+    <hr>
+    <address>
+      <a href="/">Chugchanga-L Favorite Releases Poll</a>
+    </address>
   </body>
 </html>
