@@ -33,14 +33,14 @@
 	{% endif %} {% endif %}
 	<ul>
 	  {% for v in r.votes %}
-	    {% ifchanged v.ballot.year %}
-	    <li> {{ v.ballot.year }}:
+	    {% ifchanged v.ballot.year v.category %}
+	    <li> {{ v.ballot.year }} {{ v.category }}:
 	    {% endifchanged %}
 	      <br>
 	      <a href="/ballot/{{ v.ballot.key.id }}#{{ v.category }}-{{ v.rank }}">
-		{{ v.ballot.name }} {{ v.category }} #{{ v.rank }}</a>
+		{{ v.ballot.name }}</a>
 	      {% if v.comments %}
-	        <br>{{ v.comments }}
+	        <br>{{ v.comments }}<br>
 	      {% endif %}
 	  {% endfor %}
 	</ul>
