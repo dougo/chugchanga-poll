@@ -40,8 +40,9 @@
 	      <a href="/ballot/{{ v.ballot.key.id }}#{{ v.category }}-{{ v.rank }}">
 		{{ v.ballot.name }}</a>
 	      {% if v.comments %}
-	        <br>{{ v.comments }}<br>
+	        <br>{{ v.comments }}
 	      {% endif %}
+	      <br>
 	  {% endfor %}
 	</ul>
     {% endfor %}
