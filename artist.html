@@ -34,14 +34,14 @@
 	<ul>
 	  {% for v in r.votes %}
 	    {% ifchanged v.ballot.year v.category %}
-	    <li> {{ v.ballot.year }} {{ v.category }}:
+	    <li> {{ v.ballot.year }}
+	      {% ifequal v.category 'honorable' %}
+	        honorable mention:
+	      {% else %}
+	        {{ v.category }}:
+	      {% endifequal %}
 	    {% endifchanged %}
-	      <br>
-	      {{ v.link }}
-	      {% if v.comments %}
-	        <br>{{ v.comments }}
-	      {% endif %}
-	      <br>
+	      <br>{{ v.link }}{% if v.comments %}: {{ v.comments }}{% endif %}
 	  {% endfor %}
 	</ul>
     {% endfor %}
