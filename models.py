@@ -3,6 +3,7 @@
 
 import itertools
 import collections
+from xml.sax.saxutils import escape
 from google.appengine.ext import db
 import musicbrainz
 mb = musicbrainz
@@ -176,9 +177,9 @@ class Vote(db.Model):
 
     def toDict(self):
         return { 'rank': self.rank,
-                 'artist': self.artist,
-                 'title': self.title,
-                 'comments': self.comments }
+                 'artist': escape(self.artist),
+                 'title': escape(self.title),
+                 'comments': escape(self.comments) }
 
     def url(self):
         return '/ballot/%d#%s-%d' % (self.ballot.key().id(),
