@@ -5,6 +5,6 @@
 {% if v.release %}</a>{% endif %}
 <br>
 {% if v.comments %}
-  {{ v.comments|linebreaksbr }}<br>
+  {{ v.comments|urlize|linebreaksbr }}<br>
 {% endif %}
 {% endautoescape %}

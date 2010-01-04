@@ -41,7 +41,7 @@
 	        {{ v.category }}:
 	      {% endifequal %}
 	    {% endifchanged %}
-	      <br>{{ v.link|safe }}{% if v.comments %}: {{ v.comments|safe|linebreaksbr }}{% endif %}
+	      <br>{{ v.link|safe }}{% if v.comments %}: {{ v.comments|safe|urlize|linebreaksbr }}{% endif %}
 	  {% endfor %}
 	</ul>
     {% endfor %}

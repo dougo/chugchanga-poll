@@ -37,17 +37,17 @@
 	      <font size="-1">
 		{% for f in v.1.favorite %}
 		  {% if f.comments %}
-		    {{ f.link }}: {{ f.comments|linebreaksbr }}<br>
+		    {{ f.link }}: {{ f.comments|urlize|linebreaksbr }}<br>
 		  {% endif %}
 		{% endfor %}
 		{% for h in v.1.honorable %}
 		  {% if h.comments %}
-		    {{ h.link }}: {{ h.comments|linebreaksbr }}<br>
+		    {{ h.link }}: {{ h.comments|urlize|linebreaksbr }}<br>
 		  {% endif %}
 		{% endfor %}
 		{% for n in v.1.notable %}
 		  {% if n.comments %}
-		    {{ n.link }}: {{ n.comments|linebreaksbr }}<br>
+		    {{ n.link }}: {{ n.comments|urlize|linebreaksbr }}<br>
 		  {% endif %}
 		{% endfor %}
 	      </font>
