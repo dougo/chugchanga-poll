@@ -197,7 +197,7 @@ class Vote(db.Model):
 
     def url(self):
         return '/ballot/%d#%s-%d' % (self.ballot.key().id(),
-                                     self.category, self.key().id())
+                                     self.category, self.rank)
 
     def link(self):
         return '<a href="%s">%s</a>' % (self.url(), self.ballot.name())
