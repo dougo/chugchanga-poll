@@ -12,40 +12,74 @@
 	<th colspan="2">Votes (Mentions) [Notes]</th>
       </tr>
       {% autoescape off %}
-	{% for v in y.countVotes %}
+	{% for r, v in y.countVotes %}
 	  <tr>
-	    <td>{{ v.0.link }}</td>
+	    <td>{{ r.link }}</td>
 	    <td>
-	      {% if v.1.favorite %}{{ v.1.favorite|length }}{% endif %}{% if v.1.honorable %}({{ v.1.honorable|length }}){% endif %}{% if v.1.notable %}[{{ v.1.notable|length }}]{% endif %}:
+	      {% spaceless %}
+	        {% if v.favorite %}
+	          <span>{{ v.favorite|length }}</span>
+		{% endif %}
+		{% if v.honorable %}
+		  <span>({{ v.honorable|length }})</span>
+		{% endif %}
+		{% if v.notable %}
+		  <span>[{{ v.notable|length }}]</span>
+		{% endif %}
+		<span>:</span>
+	      {% endspaceless %}
 	    </td>
 	    <td>
 	      <font size="-2">
-		{% for f in v.1.favorite %}
-		  {{ f.link }}{% if not forloop.last %},{% endif %}
+		{% for f in v.favorite %}
+		  {% spaceless %}
+		    {{ f.link }}
+		    {% if not forloop.last %}
+		      <span>,</span>
+		    {% endif %}
+		  {% endspaceless %}
 		{% endfor %}
-		{% for h in v.1.honorable %}
-		  {% if forloop.first %}({% endif %}{{ h.link }}{% if forloop.last %}){% else %}, {% endif %}
-		{% endfor %}
-		{% for n in v.1.notable %}
-		  {% if forloop.first %}[{% endif %}{{ n.link }}{% if forloop.last %}]{% else %}, {% endif %}
-		{% endfor %}
+		{% if v.honorable %}
+		  {% spaceless %}
+		    <span>(</span>
+		    {% for h in v.honorable %}
+		      {{ h.link }}
+		      {% if not forloop.last %}
+		        <span>,</span>
+		      {% endif %}
+		    {% endfor %}
+		    <span>)</span>
+		  {% endspaceless %}
+		{% endif %}
+		{% if v.notable %}
+		  {% spaceless %}
+		    <span>[</span>
+		    {% for n in v.notable %}
+		      {{ n.link }}
+		      {% if not forloop.last %}
+		        <span>,</span>
+		      {% endif %}
+		    {% endfor %}
+		    <span>]</span>
+		  {% endspaceless %}
+		{% endif %}
 	      </font>
 	    </td>
 	  </tr>
 	  <tr>
 	    <td colspan="3">
 	      <font size="-1">
-		{% for f in v.1.favorite %}
+		{% for f in v.favorite %}
 		  {% if f.comments %}
 		    {{ f.link }}: {{ f.comments|urlize|linebreaksbr }}<br>
 		  {% endif %}
 		{% endfor %}
-		{% for h in v.1.honorable %}
+		{% for h in v.honorable %}
 		  {% if h.comments %}
 		    {{ h.link }}: {{ h.comments|urlize|linebreaksbr }}<br>
 		  {% endif %}
 		{% endfor %}
-		{% for n in v.1.notable %}
+		{% for n in v.notable %}
 		  {% if n.comments %}
 		    {{ n.link }}: {{ n.comments|urlize|linebreaksbr }}<br>
 		  {% endif %}
