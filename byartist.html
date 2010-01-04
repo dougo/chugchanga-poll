@@ -1,14 +1,14 @@
 <html>
   <head>
-    <title>Chugchanga-L Favorite Releases Poll {{ year }} By Votes</title>
+    <title>Chugchanga-L Favorite Releases Poll {{ year }} By Artist</title>
   </head>
   <body>
     <h1><hr><a href="voters">Chugchanga-L Members</a>'
       Favorite Releases of {{ year }}</h1>
 
-    <a href="byartist">Sort by artist</a><p>
+    <a href="byvotes">Sort by votes</a><p>
 
-    {% with y.byVotes as votes %}
+    {% with y.byArtist as votes %}
       {% include "votes.html" %}
     {% endwith %}
   </body>

@@ -44,8 +44,22 @@ class Year(db.Model):
         for b in self.ballots():
             for c, vs in b.getVotesDict().iteritems():
                 for v in vs:
-                    count[v.release][c].append(v)
+                    if v.release:
+                        count[v.release][c].append(v)
         return count.items()
+
+    def byArtist(self):
+        votes = self.countVotes()
+        votes.sort(key=lambda item: (item[0].artist.sortname.lower(),
+                                     item[0].title.lower()))
+        return votes
+
+    def byVotes(self):
+        votes = self.byArtist()
+        votes.sort(key=lambda item: (len(item[1]['favorite']),
+                                     len(item[1]['honorable'])),
+                   reverse=True)
+        return votes
 
 class Voter(db.Model):
     user = db.UserProperty(required=True)
