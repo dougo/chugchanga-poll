@@ -134,6 +134,16 @@ class Release(db.Model):
     mbid = db.StringProperty()
     url = db.LinkProperty()
 
+    def markup(self):
+        return '<strong>%s</strong>, <cite>%s</cite>' % (self.artist.name,
+                                                         self.title)
+
+    def local(self):
+        return '/artist/%d#%d' % (self.artist.key().id(), self.key().id())
+
+    def link(self):
+        return '<a href="%s">%s</a>' % (self.local(), self.markup())
+
     def __hash__(self):
         return self.key().__hash__()
     def __eq__(self, r):

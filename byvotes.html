@@ -14,12 +14,7 @@
       {% autoescape off %}
 	{% for v in y.countVotes %}
 	  <tr>
-	    <td>
-	      <a href="/artist/{{ v.0.artist.key.id }}#{{ v.0.key.id }}">
-		<strong>{{ v.0.artist.name }}</strong>,
-		<cite>{{ v.0.title }}</cite>
-	      </a>
-	    </td>
+	    <td>{{ v.0.link }}</td>
 	    <td>
 	      {% if v.1.favorite %}{{ v.1.favorite|length }}{% endif %}{% if v.1.honorable %}({{ v.1.honorable|length }}){% endif %}{% if v.1.notable %}[{{ v.1.notable|length }}]{% endif %}:
 	    </td>
