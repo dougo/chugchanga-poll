@@ -1,9 +1,10 @@
 <html>
   <head>
-    <title>{{ voter.name }}</title>
+    <title>Chugchanga-L Member: {{ voter.name }}</title>
   </head>
   <body>
     <h1><hr>
+      Chugchanga-L Member:
       {% if voter.url %}
         <a href="{{ voter.url }}">
       {% endif %}
@@ -13,8 +14,9 @@
       {% endif %}
     </h1>
 
+    {{ voter.name }} voted in the following favorite releases polls:<br>
     {% for b in voter.ballot_set %}
-      {% if not b.anonymous %}
+      {% if not b.anonymous and not b.isEmpty %}
         <p><a href="/ballot/{{ b.key.id }}">{{ b.year }}</a>
       {% endif %}
     {% endfor %}
