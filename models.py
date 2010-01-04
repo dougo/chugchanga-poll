@@ -2,6 +2,7 @@
 # General Public License v3.  See COPYING for details.
 
 import itertools
+import collections
 from google.appengine.ext import db
 import musicbrainz
 mb = musicbrainz
@@ -22,13 +23,28 @@ class Year(db.Model):
     year = db.IntegerProperty(required=True)
     votingIsOpen = db.BooleanProperty(default=True)
 
+    # Returns the Year object for a given year.
+    @classmethod
+    def get(cls, year):
+        return cls.gql('WHERE year = :1', int(year)).get()
+
     # Returns a Query for all ballots for this year.
     def ballots(self):
         return Ballot.gql('WHERE year = :1', self.year)
 
-    # Returns a Query for all non-empty ballots for this year.
+    # Returns an iterator for all non-empty ballots for this year.
     def nonEmptyBallots(self):
         return itertools.ifilterfalse(Ballot.isEmpty, self.ballots())
+
+    # Returns a list of tuples of releases and dicts mapping categories to
+    # lists of votes.
+    def countVotes(self):
+        count = collections.defaultdict(lambda: collections.defaultdict(list))
+        for b in self.ballots():
+            for c, vs in b.getVotesDict().iteritems():
+                for v in vs:
+                    count[v.release][c].append(v)
+        return count.items()
 
 class Voter(db.Model):
     user = db.UserProperty(required=True)
@@ -118,6 +134,11 @@ class Release(db.Model):
     mbid = db.StringProperty()
     url = db.LinkProperty()
 
+    def __hash__(self):
+        return self.key().__hash__()
+    def __eq__(self, r):
+        return self.key() == r.key()
+
     def votes(self):
         votes = list(self.vote_set)
         votes.sort(key=lambda v: (v.ballot.year, v.category, v.ballot.name()))
@@ -148,3 +169,10 @@ class Vote(db.Model):
                  'artist': self.artist,
                  'title': self.title,
                  'comments': self.comments }
+
+    def url(self):
+        return '/ballot/%d#%s-%d' % (self.ballot.key().id(),
+                                     self.category, self.key().id())
+
+    def link(self):
+        return '<a href="%s">%s</a>' % (self.url(), self.ballot.name())

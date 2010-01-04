@@ -37,8 +37,7 @@
 	    <li> {{ v.ballot.year }} {{ v.category }}:
 	    {% endifchanged %}
 	      <br>
-	      <a href="/ballot/{{ v.ballot.key.id }}#{{ v.category }}-{{ v.rank }}">
-		{{ v.ballot.name }}</a>
+	      {{ v.link }}
 	      {% if v.comments %}
 	        <br>{{ v.comments }}
 	      {% endif %}

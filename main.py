@@ -225,22 +225,13 @@ class MainPage(Page):
     def get(self):
         self.render('index.html', oldyears=range(1995, 2003))
 
-class ResultsPage(Page):
-    def get(self, year):
-        y = Year.gql('WHERE year = :1', int(year)).get()
+class YearPage(Page):
+    def get(self, year, name):
+        y = Year.get(year)
         if not y:
             self.response.out.write('No poll results for ' + year + '.')
             return
-        self.render('results.html', year=year)
-
-class VotersPage(Page):
-    def get(self, year):
-        y = Year.gql('WHERE year = :1', int(year)).get()
-        if not y:
-            self.response.out.write('No poll results for ' + year + '.')
-            return
-        ballots = list(y.nonEmptyBallots())
-        self.render('voters.html', year=year, ballots=ballots)
+        self.render((name or 'results') + '.html', year=year, y=y)
 
 class VoterPage(Page):
     def get(self, id):
@@ -380,8 +371,7 @@ application = webapp.WSGIApplication([('/members/', VotePage),
                                       ('/members/profile/', ProfilePage),
                                       ('/members/ajax/', AjaxHandler),
                                       ('/', MainPage),
-                                      ('/([0-9]+)/', ResultsPage),
-                                      ('/([0-9]+)/voters', VotersPage),
+                                      ('/([0-9]+)/(.*)', YearPage),
                                       ('/ballot/([0-9]+)', BallotPage),
                                       ('/voter/([0-9]+)', VoterPage),
                                       ('/artist/([0-9]+)', ArtistPage),
