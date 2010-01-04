@@ -97,7 +97,7 @@ function addVotes(n, category) {
 	 style="visibility:hidden" /></h3>
   <textarea name="preamble" id="preamble"
 	    onchange="javascript:saveBallot('preamble')"
-	    rows="4" cols="90">{{ ballot.preamble|escape }}</textarea>
+	    rows="4" cols="90">{{ ballot.preamble }}</textarea>
   <br>
 
   <br><a name="favorite"></a>
@@ -118,7 +118,7 @@ function addVotes(n, category) {
 	 style="visibility:hidden" /></h3>
   <textarea name="postamble" id="postamble"
 	    onchange="javascript:saveBallot('postamble')"
-	    rows="4" cols="90">{{ ballot.postamble|escape }}</textarea><br>
+	    rows="4" cols="90">{{ ballot.postamble }}</textarea><br>
   <br>
   Anonymous:
   <input type="checkbox" name="anonymous" id="anonymous"
@@ -131,7 +131,7 @@ function addVotes(n, category) {
 <script language="JavaScript">
 // <![CDATA[
 
-votes = {{ votes }};
+votes = {{ votes|safe }};
 
 for (category in votes) {
   voteList = votes[category];

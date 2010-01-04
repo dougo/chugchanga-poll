@@ -19,7 +19,7 @@
 	  <input type="submit" value="Use this artist">
 	  <input type="hidden" name="artist.id" value="{{ a.key.id }}">
 	  <a href="/artist/{{ a.key.id }}">
-	    <strong>{{ a.name|escape }}</strong></a>
+	    <strong>{{ a.name }}</strong></a>
 	</form>
       {% endfor %}
       {% for r in releases %}
@@ -27,9 +27,9 @@
 	  <input type="submit" value="Use this release">
 	  <input type="hidden" name="release.id" value="{{ r.key.id }}">
 	  <a href="/artist/{{ r.artist.key.id }}">
-	    <strong>{{ r.artist.name|escape }}</strong></a>,
+	    <strong>{{ r.artist.name }}</strong></a>,
 	  <a href="/artist/{{ r.artist.key.id }}#{{ r.key.id }}">
-	    <cite>{{ r.title|escape }}</cite></a>
+	    <cite>{{ r.title }}</cite></a>
 	</form>
 	<br>
       {% endfor %}
@@ -52,17 +52,17 @@
 	      </td>
 	    {% else %} 
 	      <td><label for="artist">Name</label></td>
-	      <td><input name="artist" value="{{ name|escape }}"></td>
+	      <td><input name="artist" value="{{ name }}"></td>
 	    {% endif %}
 	    <td rowspan="5">
-	      <a href="http://google.com/search?q={{ name|escape }}+{{ title|escape }}"
+	      <a href="http://google.com/search?q={{ name }}+{{ title }}"
 		 target="_blank">Search Google</a>
 	    </td>
 	  </tr>
 	  <tr>
 	    {% if not artist and not mbArtist %}
 	      <td><label for="sortname">Sortname</label></td>
-	      <td><input name="sortname" value="{{ name|escape }}"></td>
+	      <td><input name="sortname" value="{{ name }}"></td>
 	    {% endif %}
 	  </tr>
 	  <tr>
@@ -74,7 +74,7 @@
 	  <tr>
 	    <td rowspan="2">Release</td>
 	    <td><label for="title">Title</label></td>
-	    <td><input name="title" value="{{ title|escape }}"size="40"></td>
+	    <td><input name="title" value="{{ title }}"size="40"></td>
 	  </tr>
 	  <tr>
 	    <td><label for="releaseurl">URL</label></td>
@@ -86,14 +86,14 @@
       <form action="" method="get">
 	<input type="submit" value="Search">
 	{% if artist or mbArtist %}
-	  <input name="title" value="{{ title|escape }}">
+	  <input name="title" value="{{ title }}">
 	  {% if artist %}
 	    <input type="hidden" name="artist.id" value="{{ artist.key.id }}">
 	  {% else %}
 	    <input type="hidden" name="artist.mbid" value="{{ mbArtist.id }}">
 	  {% endif %}
 	{% else %}
-	  <input name="name" value="{{ name|escape }}">
+	  <input name="name" value="{{ name }}">
 	{% endif %}
       </form>
       <br>
@@ -104,9 +104,9 @@
 	  {{ a.score }}%
 	  <a href="http://musicbrainz.org/artist/{{ a.id }}.html"
 	     target="_blank">
-	    <strong>{{ a.name|escape }}</strong></a>
+	    <strong>{{ a.name }}</strong></a>
 	    {% if a.disambiguation %}
-	      [{{ a.disambiguation|escape }}]
+	      [{{ a.disambiguation }}]
 	    {% endif %}
 	</form>
       {% endfor %}
@@ -117,10 +117,10 @@
 	  {{ r.score }}%
 	  <a href="http://musicbrainz.org/artist/{{ r.artist.id }}.html"
 	     target="_blank">
-	    <strong>{{ r.artist.name|escape }}</strong></a>,
+	    <strong>{{ r.artist.name }}</strong></a>,
 	  <a href="http://musicbrainz.org/release-group/{{ r.id }}.html"
 	     target="_blank">
-	    <cite>{{ r.title|escape }}</cite></a>
+	    <cite>{{ r.title }}</cite></a>
 	  {{ r.type }}
 	</form>
       {% endfor %}

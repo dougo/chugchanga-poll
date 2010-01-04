@@ -13,7 +13,7 @@
       Favorite Releases of {{ ballot.year }}
     </h1>
     {% if ballot.preamble %}
-      <p>{{ ballot.preamble|linebreaksbr }}
+      <p>{{ ballot.preamble|safe|linebreaksbr }}
     {% endif %}
     <p><ol>
     {% for v in votes.favorite %}
@@ -39,7 +39,7 @@
       </ol>
     {% endif %}
     {% if ballot.postamble %}
-      <p>{{ ballot.postamble|linebreaksbr }}
+      <p>{{ ballot.postamble|safe|linebreaksbr }}
     {% endif %}
   </body>
 </html>
