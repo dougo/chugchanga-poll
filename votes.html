@@ -1,12 +1,14 @@
 <table>
   <tr>
+    <th>Rank</th>
     <th>Release</th>
     <th colspan="2">Votes (Mentions) [Notes]</th>
   </tr>
   {% autoescape off %}
-    {% for r, v in votes %}
+    {% for v in votes %}
       <tr>
-	<td>{{ r.link }}</td>
+	<td>{{ v.rank }}.</td>
+	<td>{{ v.link }}</td>
 	<td>
 	  {% spaceless %}
 	    {% if v.favorite %}
@@ -59,6 +61,7 @@
 	</td>
       </tr>
       <tr>
+	<td></td>
 	<td colspan="3">
 	  <font size="-1">
 	    {% for f in v.favorite %}

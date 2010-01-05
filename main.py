@@ -263,6 +263,14 @@ class ArtistPage(Page):
         else:
             self.response.out.write('No such artist: ' + id)
 
+class AdminPage(Page):
+    def get(self):
+        self.render('admin.html')
+    def post(self):
+        for year in Year.all():
+            year.rankReleases()
+        self.redirect('')
+
 class CanonIndexPage(Page):
     def get(self):
         uncanonicalized = Vote.gql('WHERE release = :1 ORDER BY artist', None)
@@ -383,6 +391,7 @@ application = webapp.WSGIApplication([('/members/', VotePage),
                                       ('/ballot/([0-9]+)', BallotPage),
                                       ('/voter/([0-9]+)', VoterPage),
                                       ('/artist/([0-9]+)', ArtistPage),
+                                      ('/admin/', AdminPage),
                                       ('/admin/canon/', CanonIndexPage),
                                       ('/admin/canon/([0-9]+)/([0-9]+)', CanonPage),
                                       ('/admin/backup', BackupPage),

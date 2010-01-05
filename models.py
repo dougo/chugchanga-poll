@@ -48,18 +48,52 @@ class Year(db.Model):
                         count[v.release][c].append(v)
         return count.items()
 
-    def byArtist(self):
-        votes = self.countVotes()
-        votes.sort(key=lambda item: (item[0].artist.sortname.lower(),
-                                     item[0].title.lower()))
-        return votes
+    def rankReleases(self):
+        def key(item):
+            return len(item[1]['favorite']), len(item[1]['honorable'])
+        rank = 1
+        votes = sorted(self.countVotes(), key=key, reverse=True)
+        for k, g in itertools.groupby(votes, key):
+            nextRank = rank
+            for item in g:
+                rr = RankedRelease.gql('WHERE year = :1 AND release = :2',
+                                       self.year, item[0]).get()
+                if rr:
+                    rr.rank = rank
+                else:
+                    rr = RankedRelease(year=self.year, release=item[0],
+                                       rank=rank)
+                rr.put()
+                nextRank += 1
+            rank = nextRank
 
     def byVotes(self):
-        votes = self.byArtist()
-        votes.sort(key=lambda item: (len(item[1]['favorite']),
-                                     len(item[1]['honorable'])),
-                   reverse=True)
-        return votes
+        return RankedRelease.gql('WHERE year = :1 ORDER BY rank', self.year)
+
+    def byArtist(self):
+        return sorted(RankedRelease.gql('WHERE year = :1', self.year),
+                      key=lambda rr: (rr.release.artist.sortname.lower(),
+                                      rr.release.title.lower()))
+
+class RankedRelease(db.Model):
+    year = db.IntegerProperty(required=True)
+    rank = db.IntegerProperty(required=True)
+    release = db.ReferenceProperty(required=True)
+
+    def link(self):
+        return self.release.link()
+    def votes(self, category):
+        # TO DO: cache these as db.ListProperty(db.Key)?
+        # TO DO: sort by voter name
+        return [v for v in Vote.gql('WHERE release = :1 AND category = :2',
+                                    self.release, category)
+                if v.ballot.year == self.year]
+    def favorite(self):
+        return self.votes('favorite')
+    def honorable(self):
+        return self.votes('honorable')
+    def notable(self):
+        return self.votes('notable')
 
 class Voter(db.Model):
     user = db.UserProperty(required=True)
