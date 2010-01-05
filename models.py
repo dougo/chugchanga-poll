@@ -53,6 +53,7 @@ class Year(db.Model):
             return len(item[1]['favorite']), len(item[1]['honorable'])
         rank = 1
         votes = sorted(self.countVotes(), key=key, reverse=True)
+        rrs = []
         for k, g in itertools.groupby(votes, key):
             nextRank = rank
             for item in g:
@@ -63,9 +64,10 @@ class Year(db.Model):
                 else:
                     rr = RankedRelease(year=self.year, release=item[0],
                                        rank=rank)
-                rr.put()
+                rrs.append(rr)
                 nextRank += 1
             rank = nextRank
+        db.put(rrs)
 
     def byVotes(self):
         return RankedRelease.gql('WHERE year = :1 ORDER BY rank', self.year)
