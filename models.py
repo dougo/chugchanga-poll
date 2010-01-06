@@ -1,12 +1,17 @@
 # Copyright 2009 Doug Orleans.  Distributed under the GNU Affero
 # General Public License v3.  See COPYING for details.
 
-import itertools
 import collections
+import itertools
+import os
 from xml.sax.saxutils import escape
 from google.appengine.ext import db
+from google.appengine.ext.webapp import template
 import musicbrainz
 mb = musicbrainz
+
+import time
+import logging
 
 # Globals is a singleton class whose instance hold global values.
 class Globals(db.Model):
@@ -42,60 +47,72 @@ class Year(db.Model):
     def countVotes(self):
         count = collections.defaultdict(lambda: collections.defaultdict(list))
         for b in self.ballots():
-            for c, vs in b.getVotesDict().iteritems():
-                for v in vs:
-                    if v.release:
-                        count[v.release][c].append(v)
+            for v in b.vote_set:
+                if v.release:
+                    count[v.release][v.category].append(v)
         return count.items()
 
-    def rankReleases(self):
+    def releaseVotes(self, release, category):
+        return [v for v in Vote.gql('WHERE release = :1 AND category = :2',
+                                    release, category)
+                if v.ballot.year == self.year]
+
+    def rankedReleases(self):
+        logging.info('Ranking releases for %d' % self.year)
         def key(item):
             return len(item[1]['favorite']), len(item[1]['honorable'])
         rank = 1
-        votes = sorted(self.countVotes(), key=key, reverse=True)
+        t1 = time.time()
+        votes = self.countVotes()
+        t2 = time.time()
+        votes.sort(key=key, reverse=True)
+        t3 = time.time()
+        logging.info('Time to count: %f' % (t2-t1))
+        logging.info('Time to sort: %f' % (t3-t2))
         rrs = []
+        path = os.path.join(os.path.dirname(__file__), 'ranked.html')
+        t4 = time.time()
         for k, g in itertools.groupby(votes, key):
             nextRank = rank
             for item in g:
-                rr = RankedRelease.gql('WHERE year = :1 AND release = :2',
-                                       self.year, item[0]).get()
-                if rr:
-                    rr.rank = rank
-                else:
-                    rr = RankedRelease(year=self.year, release=item[0],
-                                       rank=rank)
+                r, v = item
+                vals = dict(rank=rank, link=r.link(), v=v)
+                html = template.render(path, vals)
+                rr = RankedRelease(year=self.year, rank=rank,
+                                   sortname=r.artist.sortname.lower(),
+                                   title=r.title.lower(),
+                                   html=html)
                 rrs.append(rr)
                 nextRank += 1
             rank = nextRank
+        t5 = time.time()
+        logging.info('Time to rank: %f' % (t5-t4))
+        return rrs
+
+    def rankReleases(self):
+        rrs = self.rankedReleases()
+        t5 = time.time()
+        q = db.GqlQuery('SELECT __key__ FROM RankedRelease WHERE year = :1',
+                        self.year)
+        db.delete(q)
         db.put(rrs)
+        t6 = time.time()
+        logging.info('Time to delete and put: %f' % (t6-t5))
 
     def byVotes(self):
-        return RankedRelease.gql('WHERE year = :1 ORDER BY rank', self.year)
+        return RankedRelease.gql('WHERE year = :1 ORDER BY rank, sortname, title',
+                                 self.year)
 
     def byArtist(self):
-        return sorted(RankedRelease.gql('WHERE year = :1', self.year),
-                      key=lambda rr: (rr.release.artist.sortname.lower(),
-                                      rr.release.title.lower()))
+        return RankedRelease.gql('WHERE year = :1 ORDER BY sortname, rank, title',
+                                 self.year)
 
 class RankedRelease(db.Model):
     year = db.IntegerProperty(required=True)
     rank = db.IntegerProperty(required=True)
-    release = db.ReferenceProperty(required=True)
-
-    def link(self):
-        return self.release.link()
-    def votes(self, category):
-        # TO DO: cache these as db.ListProperty(db.Key)?
-        # TO DO: sort by voter name
-        return [v for v in Vote.gql('WHERE release = :1 AND category = :2',
-                                    self.release, category)
-                if v.ballot.year == self.year]
-    def favorite(self):
-        return self.votes('favorite')
-    def honorable(self):
-        return self.votes('honorable')
-    def notable(self):
-        return self.votes('notable')
+    sortname = db.StringProperty(required=True)
+    title = db.StringProperty(required=True)
+    html = db.TextProperty()
 
 class Voter(db.Model):
     user = db.UserProperty(required=True)

@@ -1,0 +1,84 @@
+{% autoescape off %}
+<tr>
+  <td>{{ rank }}.</td>
+  <td>{{ link }}</td>
+  <td>
+<!--
+    {% spaceless %}
+      {% if v.favorite %}
+	<span>{{ v.favorite|length }}</span>
+      {% endif %}
+      {% if v.honorable %}
+	<span>({{ v.honorable|length }})</span>
+      {% endif %}
+      {% if v.notable %}
+	<span>[{{ v.notable|length }}]</span>
+      {% endif %}
+      <span>:</span>
+    {% endspaceless %}
+-->
+  </td>
+  <td>
+<!--
+    <font size="-2">
+      {% for f in v.favorite %}
+	{% spaceless %}
+	  {{ f.link }}
+	  {% if not forloop.last %}
+	    <span>,</span>
+	  {% endif %}
+	{% endspaceless %}
+      {% endfor %}
+      {% if v.honorable %}
+	{% spaceless %}
+	  <span>(</span>
+	  {% for h in v.honorable %}
+	    {{ h.link }}
+	    {% if not forloop.last %}
+	      <span>,</span>
+	    {% endif %}
+	  {% endfor %}
+	  <span>)</span>
+	{% endspaceless %}
+      {% endif %}
+      {% if v.notable %}
+	{% spaceless %}
+	  <span>[</span>
+	  {% for n in v.notable %}
+	    {{ n.link }}
+	    {% if not forloop.last %}
+	      <span>,</span>
+	    {% endif %}
+	  {% endfor %}
+	  <span>]</span>
+	{% endspaceless %}
+      {% endif %}
+    </font>
+-->
+  </td>
+</tr>
+<!--
+<tr>
+  <td></td>
+  <td colspan="3">
+    <font size="-1">
+      {% for f in v.favorite %}
+	{% if f.comments %}
+	  {{ f.link }}: {{ f.comments|urlize|linebreaksbr }}<br>
+	{% endif %}
+      {% endfor %}
+      {% for h in v.honorable %}
+	{% if h.comments %}
+	  {{ h.link }}: {{ h.comments|urlize|linebreaksbr }}<br>
+	{% endif %}
+      {% endfor %}
+      {% for n in v.notable %}
+	{% if n.comments %}
+	  {{ n.link }}: {{ n.comments|urlize|linebreaksbr }}<br>
+	{% endif %}
+      {% endfor %}
+    </font>
+  </td>
+</tr>
+-->
+{% endautoescape %}
