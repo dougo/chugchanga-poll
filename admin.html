@@ -1,20 +1,30 @@
 <html>
   <head>
-
-    <title>Chugchanga-L Favorite Releases Poll Administration</title>
+    <title>Chugchanga-L Favorite Releases Poll {{ year }} Administration</title>
   </head>
 
   <body>
-    <h1><hr>Chugchanga-L Favorite Releases Poll Administration</h1>
-
-    <p><a href="canon/">Canonicalize releases</a>
+    <h1><hr>Chugchanga-L Favorite Releases Poll {{ year }} Administration</h1>
 
     <p>
       <form method="POST" action="">
 	<input type="submit" value="Count the votes">
       </form>
+    </p>
 
-    <p><a href="backup">Download the database in XML</a>
+    <h2>Uncanonicalized votes</h2>
 
+    <p>
+      {% for v in unc %}
+        {% include "cvote-view.html" %}<br />
+      {% empty %}
+        All voted canonicalized.
+      {% endfor %}
+    </p>
+
+    <hr>
+    <address>
+      <a href=".">Main administration page</a>
+    </address>
   </body>
 </html>

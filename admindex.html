@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <title>Chugchanga-L Favorite Releases Poll Administration</title>
+  </head>
+
+  <body>
+    <h1><hr>Chugchanga-L Favorite Releases Poll Administration</h1>
+
+    <p>
+      {% for y in years %}
+        <a href="{{ y.year }}">{{ y.year }}</a>
+      {% endfor %}
+
+    <p><a href="backup">Download the database in XML</a>
+
+  </body>
+</html>

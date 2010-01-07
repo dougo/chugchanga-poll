@@ -265,19 +265,22 @@ class ArtistPage(Page):
 
 class AdminPage(Page):
     def get(self):
-        self.render('admin.html')
-    def post(self):
-        for year in Year.all():
-            year.rankReleases()
-        self.redirect('')
+        self.render('admindex.html', years=Year.all())
 
-class CanonIndexPage(Page):
-    def get(self):
-        uncanonicalized = Vote.gql('WHERE release = :1 ORDER BY artist', None)
-        canonicalized = [(r, r.vote_set) for r in Release.all()]
-        canonicalized.sort(key=lambda rv: rv[0].artist.sortname)
-        self.render('cindex.html', uncanonicalized=uncanonicalized,
-                    canonicalized=canonicalized)
+class AdminYearPage(Page):
+    def get(self, year):
+        y = Year.get(year)
+        if not y:
+            self.response.out.write('No poll for ' + year + '.')
+            return
+        unc = []
+        for b in y.ballots():
+            unc.extend(Vote.gql('WHERE ballot = :1 AND release = :2', b, None))
+        unc.sort(key=lambda v: v.artist.lower())
+        self.render('admin.html', year=year, unc=unc)
+    def post(self, year):
+        Year.get(year).rankReleases()
+        self.redirect('/%s/byvotes' % year)
 
 class CanonPage(Page):
     @staticmethod
@@ -392,7 +395,7 @@ application = webapp.WSGIApplication([('/members/', VotePage),
                                       ('/voter/([0-9]+)', VoterPage),
                                       ('/artist/([0-9]+)', ArtistPage),
                                       ('/admin/', AdminPage),
-                                      ('/admin/canon/', CanonIndexPage),
+                                      ('/admin/([0-9]+)', AdminYearPage),
                                       ('/admin/canon/([0-9]+)/([0-9]+)', CanonPage),
                                       ('/admin/backup', BackupPage),
                                       ], debug=True)
