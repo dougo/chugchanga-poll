@@ -265,7 +265,7 @@ class ArtistPage(Page):
 
 class AdminPage(Page):
     def get(self):
-        self.render('admindex.html', years=Year.all())
+        self.render('admindex.html', years=Year.gql('ORDER BY year DESC'))
 
 class AdminYearPage(Page):
     def get(self, year):
