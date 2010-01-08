@@ -1,12 +1,19 @@
 # Copyright 2009 Doug Orleans.  Distributed under the GNU Affero
 # General Public License v3.  See COPYING for details.
 
+import os
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+
+from google.appengine.dist import use_library
+use_library('django', '1.1')
+
 import collections
 import itertools
-import os
 from xml.sax.saxutils import escape
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
+from google.appengine.api.labs import taskqueue
 import musicbrainz
 mb = musicbrainz
 
@@ -69,18 +76,15 @@ class Poll(db.Model):
         logging.info('Time to count: %f' % (t2-t1))
         logging.info('Time to sort: %f' % (t3-t2))
         rrs = []
-        path = os.path.join(os.path.dirname(__file__), 'ranked.html')
         t4 = time.time()
         for k, g in itertools.groupby(votes, key):
             nextRank = rank
             for item in g:
                 r, v = item
-                vals = dict(rank=rank, link=r.link(), v=v)
-                html = template.render(path, vals)
                 rr = RankedRelease(year=self.year, rank=rank,
+                                   release=r,
                                    sortname=r.artist.sortname,
-                                   title=r.title,
-                                   html=html)
+                                   title=r.title)
                 rrs.append(rr)
                 nextRank += 1
             rank = nextRank
@@ -97,6 +101,11 @@ class Poll(db.Model):
         db.put(rrs)
         t6 = time.time()
         logging.info('Time to delete and put: %f' % (t6-t5))
+        for rr in rrs:
+            taskqueue.add(url='/admin/%d/cache/%d' % (self.year,
+                                                      rr.release.key().id()))
+        t7 = time.time()
+        logging.info('Time to add tasks: %f' % (t7-t6))
 
     def byVotes(self):
         return RankedRelease.gql('WHERE year = :1 ORDER BY rank, sortname, title',
@@ -105,13 +114,6 @@ class Poll(db.Model):
     def byArtist(self):
         return RankedRelease.gql('WHERE year = :1 ORDER BY sortname, rank, title',
                                  self.year)
-
-class RankedRelease(db.Model):
-    year = db.IntegerProperty(required=True)
-    rank = db.IntegerProperty(required=True)
-    sortname = db.StringProperty(required=True)
-    title = db.StringProperty(required=True)
-    html = db.TextProperty()
 
 class Voter(db.Model):
     user = db.UserProperty(required=True)
@@ -253,3 +255,25 @@ class Vote(db.Model):
 
     def link(self):
         return '<a href="%s">%s</a>' % (self.url(), self.ballot.name())
+
+class RankedRelease(db.Model):
+    year = db.IntegerProperty(required=True)
+    rank = db.IntegerProperty(required=True)
+    release = db.ReferenceProperty(Release, required=True)
+    sortname = db.StringProperty(required=True)
+    title = db.StringProperty(required=True)
+    html = db.TextProperty()
+
+    def generateHTML(self):
+        path = os.path.join(os.path.dirname(__file__), 'ranked.html')
+        votes = dict()
+        key = lambda v: (v.ballot.year, v.category)
+        for k, g in itertools.groupby(self.release.votes(), key):
+            if k[0] == self.year:
+                votes[k[1]] = list(g)
+        vals = dict(rank=self.rank, link=self.release.link(), v=votes)
+        return template.render(path, vals)
+
+    def cache(self):
+        self.html = self.generateHTML()
+        self.put()

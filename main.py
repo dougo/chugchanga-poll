@@ -14,7 +14,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
-from models import Voter, Poll, Ballot, Vote, Release, Artist, Globals
+from models import Voter, Poll, Ballot, Vote, Release, Artist, Globals, RankedRelease
 import musicbrainz
 mb = musicbrainz
 import logging
@@ -282,6 +282,21 @@ class AdminPollPage(Page):
         Poll.get(year).rankReleases()
         self.redirect('/%s/byvotes' % year)
 
+class CacheRankedReleasePage(Page):
+    def post(self, year, id):
+        release = Release.get_by_id(int(id))
+        if not release:
+            self.response.out.write('No such release: ' + id)
+            return
+        rr = RankedRelease.gql('WHERE year = :1 AND release = :2',
+                               int(year), release).get()
+        if not rr:
+            self.response.out.write('No such ranked release: ' +
+                                    year + '/' + id)
+            return
+        rr.cache()
+        self.response.out.write('Cached.')
+
 class CanonPage(Page):
     @staticmethod
     def getVote(ballotID, voteID):
@@ -395,8 +410,11 @@ application = webapp.WSGIApplication([('/members/', VotePage),
                                       ('/voter/([0-9]+)', VoterPage),
                                       ('/artist/([0-9]+)', ArtistPage),
                                       ('/admin/', AdminPage),
-                                      ('/admin/([0-9]+)', AdminPollPage),
-                                      ('/admin/canon/([0-9]+)/([0-9]+)', CanonPage),
+                                      ('/admin/([0-9]+)/', AdminPollPage),
+                                      ('/admin/([0-9]+)/cache/([0-9]+)',
+                                       CacheRankedReleasePage),
+                                      ('/admin/canon/([0-9]+)/([0-9]+)',
+                                       CanonPage),
                                       ('/admin/backup', BackupPage),
                                       ], debug=True)
 
