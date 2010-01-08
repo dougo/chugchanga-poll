@@ -47,9 +47,9 @@ class Year(db.Model):
     def countVotes(self):
         count = collections.defaultdict(lambda: collections.defaultdict(list))
         for b in self.ballots():
-            for v in b.vote_set:
-                if v.release:
-                    count[v.release][v.category].append(v)
+            votes = Vote.gql('WHERE ballot = :1 AND release != NULL', b)
+            for v in votes:
+                count[v.release][v.category].append(v)
         return count.items()
 
     def releaseVotes(self, release, category):
