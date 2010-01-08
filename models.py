@@ -24,21 +24,20 @@ class Globals(db.Model):
         secret = globals.secretWord if globals else None
         return word == secret
 
-# Each Year object signifies whether voting is still open for that year.
-class Year(db.Model):
+class Poll(db.Model):
     year = db.IntegerProperty(required=True)
     votingIsOpen = db.BooleanProperty(default=True)
 
-    # Returns the Year object for a given year.
+    # Returns the Poll object for a given year.
     @classmethod
     def get(cls, year):
         return cls.gql('WHERE year = :1', int(year)).get()
 
-    # Returns a Query for all ballots for this year.
+    # Returns a Query for all ballots for this poll.
     def ballots(self):
         return Ballot.gql('WHERE year = :1', self.year)
 
-    # Returns an iterator for all non-empty ballots for this year.
+    # Returns an iterator for all non-empty ballots for this poll.
     def nonEmptyBallots(self):
         return itertools.ifilterfalse(Ballot.isEmpty, self.ballots())
 

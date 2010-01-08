@@ -1,18 +1,18 @@
 <html>
   <head>
-    <title>Chugchanga-L Favorite Releases Poll {{ year }} Voters</title>
+    <title>Chugchanga-L Favorite Releases Poll {{ poll.year }} Voters</title>
   </head>
   <body>
-    <h1><hr>Chugchanga-L Members Who Voted in the {{ year }} Poll</h1>
+    <h1><hr>Chugchanga-L Members Who Voted in the {{ poll.year }} Poll</h1>
 
-    {% for b in y.nonEmptyBallots %}
+    {% for b in poll.nonEmptyBallots %}
       <a href="/ballot/{{ b.key.id }}">{{ b.name }}</a> <br>
     {% endfor %}
 
     <hr>
     <address>
-      <a href="/{{ year }}/">Chugchanga-L Favorite Releases Poll
-	{{ year }}</a>
+      <a href="/{{ poll.year }}/">Chugchanga-L Favorite Releases Poll
+	{{ poll.year }}</a>
     </address>
   </body>
 </html>

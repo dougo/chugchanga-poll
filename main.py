@@ -14,7 +14,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
-from models import Voter, Year, Ballot, Vote, Release, Artist, Globals
+from models import Voter, Poll, Ballot, Vote, Release, Artist, Globals
 import musicbrainz
 mb = musicbrainz
 import logging
@@ -33,7 +33,7 @@ class MemberPage(Page):
     # Sets instance variables:
     #  logout: URL
     #  voter: Voter
-    #  years: list of Years (ints) whose polls are open
+    #  years: list of years (ints) whose polls are open
     #  year: year (int) currently being voted on by voter
     #  ballot: Ballot for current voter and year, or None
     def validate(self):
@@ -44,8 +44,8 @@ class MemberPage(Page):
         if not self.voter:
             return 'invalid'
 
-        self.years = map(lambda y: y.year,
-                         Year.gql('WHERE votingIsOpen = True ORDER BY year'))
+        self.years = map(lambda p: p.year,
+                         Poll.gql('WHERE votingIsOpen = True ORDER BY year'))
         if not self.years:
             return 'closed'
         defaultYear = max(self.years)
@@ -230,13 +230,13 @@ class MainPage(Page):
     def get(self):
         self.render('index.html', oldyears=range(1995, 2003))
 
-class YearPage(Page):
+class PollPage(Page):
     def get(self, year, name):
-        y = Year.get(year)
-        if not y:
+        poll = Poll.get(year)
+        if not poll:
             self.response.out.write('No poll results for ' + year + '.')
             return
-        self.render((name or 'results') + '.html', year=year, y=y)
+        self.render((name or 'results') + '.html', poll=poll)
 
 class VoterPage(Page):
     def get(self, id):
@@ -265,21 +265,21 @@ class ArtistPage(Page):
 
 class AdminPage(Page):
     def get(self):
-        self.render('admindex.html', years=Year.gql('ORDER BY year DESC'))
+        self.render('admindex.html', polls=Poll.gql('ORDER BY year DESC'))
 
-class AdminYearPage(Page):
+class AdminPollPage(Page):
     def get(self, year):
-        y = Year.get(year)
-        if not y:
+        poll = Poll.get(year)
+        if not poll:
             self.response.out.write('No poll for ' + year + '.')
             return
         unc = []
-        for b in y.ballots():
+        for b in poll.ballots():
             unc.extend(Vote.gql('WHERE ballot = :1 AND release = :2', b, None))
         unc.sort(key=lambda v: v.artist.lower())
-        self.render('admin.html', year=year, unc=unc)
+        self.render('admin.html', poll=poll, unc=unc)
     def post(self, year):
-        Year.get(year).rankReleases()
+        Poll.get(year).rankReleases()
         self.redirect('/%s/byvotes' % year)
 
 class CanonPage(Page):
@@ -377,7 +377,7 @@ class BackupPage(Page):
         self.response.headers['Content-Type'] = "text/xml"
         self.response.out.write('<?xml version="1.0" encoding="UTF-8"?>')
         self.response.out.write('<chugchanga-poll>')
-        for model in [Globals, Year, Voter, Ballot, Vote, Release, Artist]:
+        for model in [Globals, Poll, Voter, Ballot, Vote, Release, Artist]:
             for obj in model.all():
                 self.response.out.write(obj.to_xml())
         self.response.out.write('</chugchanga-poll>')
@@ -387,15 +387,15 @@ application = webapp.WSGIApplication([('/members/', VotePage),
                                       ('/members/profile/', ProfilePage),
                                       ('/members/ajax/', AjaxHandler),
                                       ('/', MainPage),
-                                      ('/([0-9]+)/()', YearPage),
-                                      ('/([0-9]+)/(voters)', YearPage),
-                                      ('/([0-9]+)/(byvotes)', YearPage),
-                                      ('/([0-9]+)/(byartist)', YearPage),
+                                      ('/([0-9]+)/()', PollPage),
+                                      ('/([0-9]+)/(voters)', PollPage),
+                                      ('/([0-9]+)/(byvotes)', PollPage),
+                                      ('/([0-9]+)/(byartist)', PollPage),
                                       ('/ballot/([0-9]+)', BallotPage),
                                       ('/voter/([0-9]+)', VoterPage),
                                       ('/artist/([0-9]+)', ArtistPage),
                                       ('/admin/', AdminPage),
-                                      ('/admin/([0-9]+)', AdminYearPage),
+                                      ('/admin/([0-9]+)', AdminPollPage),
                                       ('/admin/canon/([0-9]+)/([0-9]+)', CanonPage),
                                       ('/admin/backup', BackupPage),
                                       ], debug=True)
