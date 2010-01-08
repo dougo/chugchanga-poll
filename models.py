@@ -79,8 +79,8 @@ class Year(db.Model):
                 vals = dict(rank=rank, link=r.link(), v=v)
                 html = template.render(path, vals)
                 rr = RankedRelease(year=self.year, rank=rank,
-                                   sortname=r.artist.sortname.lower(),
-                                   title=r.title.lower(),
+                                   sortname=r.artist.sortname,
+                                   title=r.title,
                                    html=html)
                 rrs.append(rr)
                 nextRank += 1
@@ -191,7 +191,7 @@ class Artist(db.Model):
         if not artist:
             mbArtist = mb.Artist(mbid)
             artist = Artist(name=mbArtist.name,
-                            sortname=mbArtist.sortname,
+                            sortname=mbArtist.sortname.lower(),
                             mbid=mbid)
             artist.put()
         return artist
