@@ -3,7 +3,6 @@
   <td>{{ rank }}.</td>
   <td>{{ link }}</td>
   <td>
-<!--
     {% spaceless %}
       {% if v.favorite %}
 	<span>{{ v.favorite|length }}</span>
@@ -16,10 +15,8 @@
       {% endif %}
       <span>:</span>
     {% endspaceless %}
--->
   </td>
   <td>
-<!--
     <font size="-2">
       {% for f in v.favorite %}
 	{% spaceless %}
@@ -54,10 +51,8 @@
 	{% endspaceless %}
       {% endif %}
     </font>
--->
   </td>
 </tr>
-<!--
 <tr>
   <td></td>
   <td colspan="3">
@@ -80,5 +75,4 @@
     </font>
   </td>
 </tr>
--->
 {% endautoescape %}
