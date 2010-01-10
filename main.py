@@ -385,7 +385,7 @@ class CanonPage(Page):
             key = next.key()
             self.redirect('../%d/%d' % (key.parent().id(), key.id()))
         else:
-            self.redirect('..')
+            self.redirect('../..')
             
 class BackupPage(Page):
     def get(self):
