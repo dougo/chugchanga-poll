@@ -228,7 +228,7 @@ class AjaxHandler(MemberPage):
 class MainPage(Page):
     def get(self):
         self.render('index.html', years=Poll.openYears(),
-                    oldyears=range(1995, 2003))
+                    oldyears=range(1995, 2004))
 
 class PollPage(Page):
     def get(self, year, name):
