@@ -39,6 +39,12 @@ class Poll(db.Model):
     numUniqueVotes = db.IntegerProperty()
     numReleases = db.IntegerProperty()
 
+    # Returns the years (ints) whose polls are currently open for voting.
+    @classmethod
+    def openYears(cls):
+        return [p.year for p in
+                cls.gql('WHERE votingIsOpen = True ORDER BY year')]
+
     # Returns the Poll object for a given year.
     @classmethod
     def get(cls, year):

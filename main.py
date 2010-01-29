@@ -44,8 +44,7 @@ class MemberPage(Page):
         if not self.voter:
             return 'invalid'
 
-        self.years = map(lambda p: p.year,
-                         Poll.gql('WHERE votingIsOpen = True ORDER BY year'))
+        self.years = Poll.openYears()
         if not self.years:
             return 'closed'
         defaultYear = max(self.years)
@@ -63,12 +62,12 @@ class MemberPage(Page):
 
 class ProfilePage(MemberPage):
     def get(self):
-        if self.validate():
+        if self.validate() == 'invalid':
             return
         self.render('profile.html', voter=self.voter, logout=self.logout)
         
     def post(self):
-        if self.validate():
+        if self.validate() == 'invalid':
             return
         self.voter.name = self.request.get('name') or self.voter.user.nickname()
         self.voter.url = self.request.get('url')
@@ -228,7 +227,8 @@ class AjaxHandler(MemberPage):
 
 class MainPage(Page):
     def get(self):
-        self.render('index.html', oldyears=range(1995, 2003))
+        self.render('index.html', years=Poll.openYears(),
+                    oldyears=range(1995, 2003))
 
 class PollPage(Page):
     def get(self, year, name):

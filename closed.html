@@ -2,7 +2,10 @@
   <head><title>Chugchanga-L Favorite Releases Poll</title></head>
 
   <body>
-    <p>Hello, {{ voter.name }}!  The Chugchanga-L Favorite Releases
-         Poll is currently closed.  Check back later!
+    <p>Hello, {{ voter.name }}!
+      <small>(<a href="profile/">edit your profile</a>)</small>
+      <small>(<a href="{{ logout }}">login as a different user</a>)</small>
+    <p>The <a href="..">Chugchanga-L Favorite Releases Poll</a>
+       is currently closed.  Check back later!
   </body>
 </html>
