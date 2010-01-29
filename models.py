@@ -34,6 +34,10 @@ class Globals(db.Model):
 class Poll(db.Model):
     year = db.IntegerProperty(required=True)
     votingIsOpen = db.BooleanProperty(default=True)
+    numVoters = db.IntegerProperty()
+    numVotedReleases = db.IntegerProperty()
+    numUniqueVotes = db.IntegerProperty()
+    numReleases = db.IntegerProperty()
 
     # Returns the Poll object for a given year.
     @classmethod
@@ -49,13 +53,20 @@ class Poll(db.Model):
         return itertools.ifilterfalse(Ballot.isEmpty, self.ballots())
 
     # Returns a list of tuples of releases and dicts mapping categories to
-    # lists of votes.
+    # lists of votes.  Also sets statistical properties on the Poll object.
     def countVotes(self):
         count = collections.defaultdict(lambda: collections.defaultdict(list))
         for b in self.ballots():
             votes = Vote.gql('WHERE ballot = :1 AND release != NULL', b)
             for v in votes:
                 count[v.release][v.category].append(v)
+        self.numVoters = len(self.nonEmptyBallots())
+        self.numVotedReleases = len([v for v in count.values()
+                                     if v['favorite']])
+        self.numUniqueVotes = len([v for v in count.values()
+                                   if len(v['favorite']) == 1])
+        self.numReleases = len(count)
+        self.put()
         return count.items()
 
     def releaseVotes(self, release, category):
@@ -98,14 +109,16 @@ class Poll(db.Model):
         q = db.GqlQuery('SELECT __key__ FROM RankedRelease WHERE year = :1',
                         self.year)
         db.delete(q)
-        db.put(rrs)
         t6 = time.time()
-        logging.info('Time to delete and put: %f' % (t6-t5))
+        logging.info('Time to delete: %f' % (t6-t5))
+        db.put(rrs)
+        t7 = time.time()
+        logging.info('Time to put: %f' % (t7-t6))
         for rr in rrs:
             taskqueue.add(url='/admin/%d/cache/%d' % (self.year,
                                                       rr.release.key().id()))
-        t7 = time.time()
-        logging.info('Time to add tasks: %f' % (t7-t6))
+        t8 = time.time()
+        logging.info('Time to add tasks: %f' % (t8-t7))
 
     def byVotes(self):
         return RankedRelease.gql('WHERE year = :1 ORDER BY rank, sortname, title',
@@ -113,6 +126,11 @@ class Poll(db.Model):
 
     def byArtist(self):
         return RankedRelease.gql('WHERE year = :1 ORDER BY sortname, rank, title',
+                                 self.year)
+
+    def top20andTies(self):
+        # TO DO: no more than 30?
+        return RankedRelease.gql('WHERE year = :1 AND rank <= 20 ORDER BY rank, sortname, title',
                                  self.year)
 
 class Voter(db.Model):
@@ -264,14 +282,18 @@ class RankedRelease(db.Model):
     title = db.StringProperty(required=True)
     html = db.TextProperty()
 
-    def generateHTML(self):
-        path = os.path.join(os.path.dirname(__file__), 'ranked.html')
-        votes = dict()
+    def collectVotes(self):
+        votes = dict([[c, []] for c in Ballot.categories])
         key = lambda v: (v.ballot.year, v.category)
         for k, g in itertools.groupby(self.release.votes(), key):
             if k[0] == self.year:
                 votes[k[1]] = list(g)
-        vals = dict(rank=self.rank, link=self.release.link(), v=votes)
+        return votes
+
+    def generateHTML(self):
+        path = os.path.join(os.path.dirname(__file__), 'ranked.html')
+        vals = dict(rank=self.rank, link=self.release.link(),
+                    v=self.collectVotes())
         return template.render(path, vals)
 
     def cache(self):

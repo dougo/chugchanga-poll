@@ -8,7 +8,23 @@
 
     <p>
       The short list:
-
+      <ul>
+	{% for rr in poll.top20andTies %}
+          {{ rr.rank }}.
+	  {{ rr.release.link|safe }}
+	  {% with rr.collectVotes as v %}
+	    {% with v.favorite|length as f %}
+	    - {{ f }} vote{{ f|pluralize }}
+	    {% endwith %}
+	    {% with v.honorable|length as h %}
+	      {% if h %}
+	        ({{ h }} mention{{ h|pluralize }})
+	      {% endif %}
+	    {% endwith %}
+	  {% endwith %}
+	  <br>
+	{% endfor %}
+      </ul>
     <p>
       The long list:
       <ul>
@@ -19,6 +35,16 @@
 
     <p>
       Some statistics:
+      <ul>
+	<li> Number of voters:
+	  <b>{{ poll.numVoters }}</b>
+	<li> Number of releases receiving at least one vote:
+	  <b>{{ poll.numVotedReleases }}</b>
+	<li> Number of releases receiving exactly one vote:
+	  <b>{{ poll.numUniqueVotes }}</b>
+	<li> Total number of releases mentioned:
+	  <b>{{ poll.numReleases }}</b>
+      </ul>
 
     <hr>
     <address>
