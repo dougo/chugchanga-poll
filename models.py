@@ -38,6 +38,11 @@ class Poll(db.Model):
     numVotedReleases = db.IntegerProperty()
     numUniqueVotes = db.IntegerProperty()
     numReleases = db.IntegerProperty()
+    # Cached pages:
+    results = db.TextProperty()
+    voters = db.TextProperty()
+    byvotes = db.TextProperty()
+    byartist = db.TextProperty()
 
     # Returns the years (ints) whose polls are currently open for voting.
     @classmethod
@@ -111,6 +116,14 @@ class Poll(db.Model):
 
     def rankReleases(self):
         rrs = self.rankedReleases()
+
+        # Flush the cached pages.
+        self.results = None
+        self.voters = None
+        self.byvotes = None
+        self.byartist = None
+        self.put()
+
         t5 = time.time()
         q = db.GqlQuery('SELECT __key__ FROM RankedRelease WHERE year = :1',
                         self.year)

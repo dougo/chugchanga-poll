@@ -20,9 +20,12 @@ mb = musicbrainz
 import logging
 
 class Page(webapp.RequestHandler):
-    def render(self, template_file, **template_values):
+    def getRendered(self, template_file, **template_values):
         path = os.path.join(os.path.dirname(__file__), template_file)
-        self.response.out.write(template.render(path, template_values))
+        return template.render(path, template_values)
+    def render(self, template_file, **template_values):
+        rendered = self.getRendered(template_file, **template_values)
+        self.response.out.write(rendered)
 
 # Base class for member pages.
 class MemberPage(Page):
@@ -242,7 +245,13 @@ class PollPage(Page):
         if not poll:
             self.response.out.write('No poll results for ' + year + '.')
             return
-        self.render((name or 'results') + '.html', poll=poll)
+        name = name or 'results'
+        rendered = getattr(poll, name)
+        if not rendered:
+            rendered = self.getRendered(name + '.html', poll=poll)
+            setattr(poll, name, rendered)
+            poll.put()
+        self.response.out.write(rendered)
 
 class VoterPage(Page):
     def get(self, id):
