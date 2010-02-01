@@ -111,10 +111,7 @@ class Poll(db.Model):
             nextRank = rank
             for item in g:
                 r, v = item
-                rr = RankedRelease(year=self.year, rank=rank,
-                                   release=r,
-                                   sortname=r.artist.sortname,
-                                   title=r.title)
+                rr = RankedRelease(year=self.year, rank=rank, release=r)
                 rrs.append(rr)
                 nextRank += 1
             rank = nextRank
@@ -298,8 +295,8 @@ class RankedRelease(db.Model):
     year = db.IntegerProperty(required=True)
     rank = db.IntegerProperty(required=True)
     release = db.ReferenceProperty(Release, required=True)
-    sortname = db.StringProperty(required=True)
-    title = db.StringProperty(required=True)
+    sortname = db.StringProperty()
+    title = db.StringProperty()
     html = db.TextProperty()
 
     def collectVotes(self):
@@ -317,5 +314,7 @@ class RankedRelease(db.Model):
         return template.render(path, vals)
 
     def cache(self):
+        self.sortname = self.release.artist.sortname
+        self.title = self.release.title
         self.html = self.generateHTML()
         self.put()
