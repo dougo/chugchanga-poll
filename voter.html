@@ -15,10 +15,8 @@
     </h1>
 
     {{ voter.name }} voted in the following favorite releases polls:<br>
-    {% for b in voter.ballot_set %}
-      {% if not b.anonymous and not b.isEmpty %}
-        <p><a href="/ballot/{{ b.key.id }}">{{ b.year }}</a>
-      {% endif %}
+    {% for b in voter.publicBallots %}
+      <p><a href="/ballot/{{ b.key.id }}">{{ b.year }}</a>
     {% endfor %}
   </body>
 </html>

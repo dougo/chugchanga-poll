@@ -161,6 +161,14 @@ class Voter(db.Model):
     year = db.IntegerProperty() # the year currently being edited
     wantsPlain = db.BooleanProperty() # voter prefers plain HTML to Javascript
 
+    # A list of the voter's ballots which are not anonymous, empty, or
+    # for a still-open year.
+    def publicBallots(self):
+        return [b for b in
+                Ballot.gql('WHERE voter = :1 AND anonymous = FALSE ' +
+                           'ORDER BY year DESC', self)
+                if not b.isEmpty() and not Poll.get(b.year).votingIsOpen]
+
 class Ballot(db.Model):
     voter = db.ReferenceProperty(Voter, required=True)
     year = db.IntegerProperty(required=True)
