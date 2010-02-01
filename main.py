@@ -17,6 +17,7 @@ from django.utils import simplejson
 from models import Voter, Poll, Ballot, Vote, Release, Artist, Globals, RankedRelease
 import musicbrainz
 mb = musicbrainz
+import time
 import logging
 
 class Page(webapp.RequestHandler):
@@ -248,7 +249,8 @@ class PollPage(Page):
         name = name or 'results'
         rendered = getattr(poll, name)
         if not rendered:
-            rendered = self.getRendered(name + '.html', poll=poll)
+            rendered = self.getRendered(name + '.html', poll=poll,
+                                        time=time.ctime())
             setattr(poll, name, rendered)
             poll.put()
         self.response.out.write(rendered)
