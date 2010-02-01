@@ -1,4 +1,4 @@
-# Copyright 2009 Doug Orleans.  Distributed under the GNU Affero
+# Copyright 2009-2010 Doug Orleans.  Distributed under the GNU Affero
 # General Public License v3.  See COPYING for details.
 
 import os
