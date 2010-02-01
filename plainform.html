@@ -5,20 +5,20 @@
 <form action="" method="post">
   <input type="submit" value="Save changes"><br>
 
-  <br><a name="preamble"></a>
+  <br><a name="_preamble"></a>
   <h3>Opening comments</h3>
   <textarea name="preamble"
 	    rows="4" cols="90">{{ ballot.preamble }}</textarea>
   <br>
 
-  <br><a name="favorite"></a>
+  <br><a name="_favorite"></a>
   <h3>Favorite releases</h3>
   <input type="hidden" name="favorites" value="{{ votes.favorite|length }}">
   {% for vote in votes.favorite %}
     {% include "vote.html" %}
   {% endfor %}
 
-  <br><a name="honorable"></a>
+  <br><a name="_honorable"></a>
   <input type="hidden" name="honorables" value="{{ votes.honorable|length }}">
   {% for vote in votes.honorable %}
     {% ifequal forloop.counter 1 %}
@@ -32,7 +32,7 @@
   </button>
   <br>
 
-  <br><a name="notable"></a>
+  <br><a name="_notable"></a>
   <input type="hidden" name="notables" value="{{ votes.notable|length }}">
   {% for vote in votes.notable %}
     {% ifequal forloop.counter 1 %}
@@ -46,7 +46,7 @@
   </button>
   <br>
 
-  <br><a name="postamble"></a>
+  <br><a name="_postamble"></a>
   <h3>Closing comments</h3>
   <textarea name="postamble"
 	    rows="4" cols="90">{{ ballot.postamble }}</textarea><br>

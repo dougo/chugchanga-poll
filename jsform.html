@@ -10,7 +10,8 @@ Also, consider
 // <![CDATA[
 
 function save(id, parameters) {
-  if (status = $(id + 'Status')) {
+  var status = $(id + 'Status');
+  if (status) {
     status.setStyle("visibility:visible");
     status.setAttribute("src", "/static/progress.gif");
     status.removeAttribute("title");
@@ -28,7 +29,7 @@ function save(id, parameters) {
         status.setAttribute("src", "/static/error.gif");
         status.setAttribute("title", transport.responseText);
       };
-    },
+    }
   });
 }
 
@@ -44,24 +45,34 @@ function saveVote(category, rank, field) {
 function statusImg(id) {
   return new Element('img', {
     id: id + "Status", src: "/static/progress.gif",
-    style: "visibility:hidden", align: "top",
+    style: "visibility:hidden", align: "top"
   });
 }
 
 function makeVoteFields(category, vote) {
   prefix = category + vote.rank;
+
   artist = new Element('input', {
-    id: prefix + "artist", size: 20, value: vote.artist,
-    onchange: "saveVote('" + category + "', " + vote.rank + ", 'artist')",
+    id: prefix + "artist", size: 20, value: vote.artist
   });
+  artist.observe("change", function(event) {
+    saveVote(category, vote.rank, 'artist');
+  });
+
   title = new Element('input', {
-    id: prefix + "title", size: 40, value: vote.title,
-    onchange: "saveVote('" + category + "', " + vote.rank + ", 'title')",
+    id: prefix + "title", size: 40, value: vote.title
   });
+  title.observe("change", function(event) {
+    saveVote(category, vote.rank, 'title');
+  });
+
   comments = new Element('textarea', {
-    id: prefix + "comments", rows: 2, cols: 90,
-    onchange: "saveVote('" + category + "', " + vote.rank + ", 'comments')",
+    id: prefix + "comments", rows: 2, cols: 90
   }).insert(vote.comments);
+  comments.observe("change", function(event) {
+    saveVote(category, vote.rank, 'comments');
+  });
+
   return new Element('div').insert(vote.rank + ". Artist: ").insert(artist)
     .insert(statusImg(prefix + "artist"))
     .insert(" Title: ").insert(title)
@@ -78,20 +89,17 @@ function addVote(category) {
            artist: "", title: "", comments: "" };
   votes[category].push(vote);
   fields = makeVoteFields(category, vote);
-  fields.setAttribute("onkeypress", "addVote('" + category +
-                                    "'); this.removeAttribute('onkeypress')");
+  fields.observe('keypress', function(event) {
+    addVote(category); this.stopObserving('keypress');
+  });
   $(category).insert(fields);
-}
-
-function addVotes(n, category) {
-  for (i = 0; i < n; i++) addVote(category);
 }
 
 // ]]>
 </script>
 
 <form action="" method="post">
-  <br><a name="preamble"></a>
+  <br><a name="_preamble"></a>
   <h3>Opening comments
     <img id="preambleStatus" src="/static/progress.gif"
 	 style="visibility:hidden" /></h3>
@@ -100,19 +108,19 @@ function addVotes(n, category) {
 	    rows="4" cols="90">{{ ballot.preamble }}</textarea>
   <br>
 
-  <br><a name="favorite"></a>
+  <br><a name="_favorite"></a>
   <h3>Favorite releases</h3>
   <div id="favorite"></div>
 
-  <br><a name="honorable"></a>
+  <br><a name="_honorable"></a>
   <h3>Honorable mentions</h3>
   <div id="honorable"></div>
 
-  <br><a name="notable"></a>
+  <br><a name="_notable"></a>
   <h3>Other notable releases</h3>
   <div id="notable"></div>
 
-  <br><a name="postamble"></a>
+  <br><a name="_postamble"></a>
   <h3>Closing comments
     <img id="postambleStatus" src="/static/progress.gif"
 	 style="visibility:hidden" /></h3>

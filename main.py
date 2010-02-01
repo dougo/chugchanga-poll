@@ -142,9 +142,14 @@ class VotePage(MemberPage):
 
         votes = set(self.ballot.vote_set)
         addCat = self.request.get('add')
+        # IE submits the button label rather than the value attribute.  :(
+        if addCat.find('honorable') != -1:
+            addCat = 'honorable'
+        if addCat.find('notable') != -1:
+            addCat = 'notable'
         db.run_in_transaction(self.update, votes, addCat)
         if addCat:
-            self.redirect(self.request.uri + '#' + addCat)
+            self.redirect(self.request.uri + '#_' + addCat)
         else:
             self.redirect(self.request.uri)
 
@@ -186,6 +191,7 @@ class VotePage(MemberPage):
 
 class AjaxHandler(MemberPage):
     def post(self):
+        logging.info('Ajax: ' + str(self.request))
         status = self.validate()
         if status:
             self.response.out.write(status)
