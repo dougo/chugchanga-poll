@@ -146,9 +146,13 @@ class Poll(db.Model):
                                  self.year)
 
     def top20andTies(self):
-        # TO DO: no more than 30?
-        return RankedRelease.gql('WHERE year = :1 AND rank <= 20 ORDER BY rank, sortname, title',
-                                 self.year)
+        q = RankedRelease.gql('WHERE year = :1 AND rank < :2 ' +
+                              'ORDER BY rank, sortname, title',
+                              self.year, 21)
+        if q.count() > 30:
+            rr21 = q.fetch(1, 20)[0]
+            q.bind(self.year, rr21.rank)
+        return q
 
 class Voter(db.Model):
     user = db.UserProperty(required=True)
