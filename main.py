@@ -295,7 +295,17 @@ class AdminPollPage(Page):
         self.render('admin.html', poll=poll, unc=unc)
     def post(self, year):
         Poll.get(year).rankReleases()
-        self.redirect('/%s/byvotes' % year)
+        # TO DO: status page (with auto-refresh?)
+        self.redirect('')
+
+class FlushCachePage(Page):
+    def post(self, year):
+        poll = Poll.get(year)
+        if not poll:
+            self.response.out.write('No poll for ' + year + '.')
+            return
+        poll.flush()
+        self.response.out.write('Flushed.')
 
 class CacheRankedReleasePage(Page):
     def post(self, year, id):
@@ -426,6 +436,7 @@ application = webapp.WSGIApplication([('/members/', VotePage),
                                       ('/artist/([0-9]+)', ArtistPage),
                                       ('/admin/', AdminPage),
                                       ('/admin/([0-9]+)/', AdminPollPage),
+                                      ('/admin/([0-9]+)/flush', FlushCachePage),
                                       ('/admin/([0-9]+)/cache/([0-9]+)',
                                        CacheRankedReleasePage),
                                       ('/admin/canon/([0-9]+)/([0-9]+)',

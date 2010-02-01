@@ -44,6 +44,14 @@ class Poll(db.Model):
     byvotes = db.TextProperty()
     byartist = db.TextProperty()
 
+    # Flush the cached pages.
+    def flush(self):
+        self.results = None
+        self.voters = None
+        self.byvotes = None
+        self.byartist = None
+        self.put()
+
     # Returns the years (ints) whose polls are currently open for voting.
     @classmethod
     def openYears(cls):
@@ -71,7 +79,7 @@ class Poll(db.Model):
             votes = Vote.gql('WHERE ballot = :1 AND release != NULL', b)
             for v in votes:
                 count[v.release][v.category].append(v)
-        self.numVoters = len(self.nonEmptyBallots())
+        self.numVoters = len(list(self.nonEmptyBallots()))
         self.numVotedReleases = len([v for v in count.values()
                                      if v['favorite']])
         self.numUniqueVotes = len([v for v in count.values()
@@ -116,14 +124,6 @@ class Poll(db.Model):
 
     def rankReleases(self):
         rrs = self.rankedReleases()
-
-        # Flush the cached pages.
-        self.results = None
-        self.voters = None
-        self.byvotes = None
-        self.byartist = None
-        self.put()
-
         t5 = time.time()
         q = db.GqlQuery('SELECT __key__ FROM RankedRelease WHERE year = :1',
                         self.year)
@@ -136,6 +136,7 @@ class Poll(db.Model):
         for rr in rrs:
             taskqueue.add(url='/admin/%d/cache/%d' % (self.year,
                                                       rr.release.key().id()))
+        taskqueue.add(url='/admin/%d/flush' % self.year, countdown=len(rrs))
         t8 = time.time()
         logging.info('Time to add tasks: %f' % (t8-t7))
 
