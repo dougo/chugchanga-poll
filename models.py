@@ -10,7 +10,6 @@ use_library('django', '1.1')
 
 import collections
 import itertools
-from xml.sax.saxutils import escape
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.api.labs import taskqueue
@@ -292,9 +291,9 @@ class Vote(db.Model):
 
     def toDict(self):
         return { 'rank': self.rank,
-                 'artist': escape(self.artist),
-                 'title': escape(self.title),
-                 'comments': escape(self.comments) }
+                 'artist': self.artist,
+                 'title': self.title,
+                 'comments': self.comments }
 
     def url(self):
         return '/ballot/%d#%s-%d' % (self.ballot.key().id(),

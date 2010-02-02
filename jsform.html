@@ -68,7 +68,7 @@ function makeVoteFields(category, vote) {
 
   comments = new Element('textarea', {
     id: prefix + "comments", rows: 2, cols: 90
-  }).insert(vote.comments);
+  }).insert(vote.comments.escapeHTML());
   comments.observe("change", function(event) {
     saveVote(category, vote.rank, 'comments');
   });
