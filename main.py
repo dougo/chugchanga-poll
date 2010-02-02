@@ -195,7 +195,6 @@ class VotePage(MemberPage):
 
 class AjaxHandler(MemberPage):
     def post(self):
-        logging.info('Ajax: ' + str(self.request))
         status = self.validate()
         if status:
             self.response.out.write(status)
