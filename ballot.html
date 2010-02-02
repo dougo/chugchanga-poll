@@ -41,5 +41,11 @@
     {% if ballot.postamble %}
       <p>{{ ballot.postamble|safe|urlize|linebreaksbr }}
     {% endif %}
+
+    <hr>
+    <address>
+      <a href="/{{ ballot.year }}/">Chugchanga-L Favorite Releases Poll
+	{{ ballot.year }}</a>
+    </address>
   </body>
 </html>
