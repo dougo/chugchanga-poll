@@ -19,6 +19,7 @@ import musicbrainz
 mb = musicbrainz
 import time
 import logging
+from urllib2 import HTTPError
 
 class Page(webapp.RequestHandler):
     def getRendered(self, template_file, **template_values):
@@ -324,12 +325,25 @@ class CacheRankedReleasePage(Page):
         self.response.out.write('Cached.')
 
 class CanonPage(Page):
+    def catchHTTPError(self, func):
+        try:
+            func()
+        except HTTPError, e:
+            self.response.out.write('<pre>\n')
+            self.response.out.write(str(e) + '\n')
+            self.response.out.write(e.url + '\n')
+            self.response.out.write('</pre>')
+            self.response.out.writelines(e.readlines())
+
     @staticmethod
     def getVote(ballotID, voteID):
         ballotKey = db.Key.from_path(Ballot.kind(), int(ballotID))
         return Vote.get_by_id(int(voteID), ballotKey)
 
     def get(self, ballotID, voteID):
+        self.catchHTTPError(lambda: self.rawGet(ballotID, voteID))
+
+    def rawGet(self, ballotID, voteID):
         vote = self.getVote(ballotID, voteID)
         if not vote:
             self.response.out.write('No such vote: ' + ballotID + '/' + voteID)
@@ -378,6 +392,9 @@ class CanonPage(Page):
         self.render('canon.html', **render)
 
     def post(self, ballotID, voteID):
+        self.catchHTTPError(lambda: self.rawPost(ballotID, voteID))
+
+    def rawPost(self, ballotID, voteID):
         vote = self.getVote(ballotID, voteID)
         id = self.request.get('release.id', default_value=None)
         mbid = self.request.get('release.mbid', default_value=None)

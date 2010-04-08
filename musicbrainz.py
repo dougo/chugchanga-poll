@@ -10,6 +10,7 @@ mbns = 'http://musicbrainz.org/ns/mmd-1.0#'
 extns = 'http://musicbrainz.org/ns/ext-1.0#'
 
 def xmlHttpRequest(url):
+    time.sleep(2)
     response = urllib2.urlopen(url)
     info = response.info()
     # TO DO: check info.status
@@ -22,7 +23,6 @@ class Resource:
 
     @classmethod
     def getElement(cls, id, *inc):
-        time.sleep(1)
         fields = { 'type': 'xml', 'inc': ' '.join(inc) }
         url = cls.url() + id + '?' + urllib.urlencode(fields)
         doc = xmlHttpRequest(url)
@@ -30,7 +30,6 @@ class Resource:
 
     @classmethod
     def searchElements(cls, **fields):
-        time.sleep(1)
         for key in fields:
             fields[key] = fields[key].encode('utf-8')
         fields['type'] = 'xml'
