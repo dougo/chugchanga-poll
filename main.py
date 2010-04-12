@@ -19,7 +19,6 @@ import musicbrainz
 mb = musicbrainz
 import time
 import logging
-from urllib2 import HTTPError
 
 class Page(webapp.RequestHandler):
     def getRendered(self, template_file, **template_values):
@@ -328,12 +327,12 @@ class CanonPage(Page):
     def catchHTTPError(self, func):
         try:
             func()
-        except HTTPError, e:
+        except mb.HTTPError, e:
             self.response.out.write('<pre>\n')
             self.response.out.write(str(e) + '\n')
             self.response.out.write(e.url + '\n')
             self.response.out.write('</pre>')
-            self.response.out.writelines(e.readlines())
+            self.response.out.write(e.response.content)
 
     @staticmethod
     def getVote(ballotID, voteID):

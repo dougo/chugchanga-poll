@@ -1,20 +1,31 @@
-# Copyright 2009 Doug Orleans.  Distributed under the GNU Affero
+# Copyright 2009-2010 Doug Orleans.  Distributed under the GNU Affero
 # General Public License v3.  See COPYING for details.
 
+from google.appengine.api import urlfetch
 import urllib
-import urllib2
 from xml.dom import minidom
 import time
 
 mbns = 'http://musicbrainz.org/ns/mmd-1.0#'
 extns = 'http://musicbrainz.org/ns/ext-1.0#'
 
+# Since the Musicbrainz XML Web service does rate-limiting by IP, and
+# requests from multiple Google App Engine apps might all come from
+# the same IP, we are likely to get rate-limited no matter how slow we
+# ourselves go.  So instead we have to go through a proxy at a
+# different address.
+
+def proxify(url):
+    return ('http://steak.place.org/servlets/mb-mirror.ss?'
+            + urllib.urlencode({ 'url': url }))
+
 def xmlHttpRequest(url):
-    time.sleep(2)
-    response = urllib2.urlopen(url)
-    info = response.info()
-    # TO DO: check info.status
-    return minidom.parse(response)
+    time.sleep(1)
+    url = proxify(url)
+    response = urlfetch.fetch(url, deadline=10)
+    if response.status_code != 200:
+        raise HTTPError(url, response)
+    return minidom.parseString(response.content)
 
 class Resource:
     @classmethod
@@ -89,3 +100,11 @@ def textContent(node):
                    if node.nodeType == node.TEXT_NODE)
 
 
+class HTTPError(Exception):
+    def __init__(self, url, response):
+        self.url = url
+        self.response = response
+
+
+    def __str__(self):
+        return 'HTTPError: ' + str(self.response.status_code)
