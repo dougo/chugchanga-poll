@@ -5,7 +5,7 @@
   <body>
     <h1><hr>Chugchanga-L Members Who Voted in the {{ poll.year }} Poll</h1>
 
-    {% for b in poll.nonEmptyBallots %}
+    {% for b in poll.nonEmptyBallotsSorted %}
       <a href="/ballot/{{ b.key.id }}">{{ b.name }}</a> <br>
     {% endfor %}
 

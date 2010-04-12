@@ -70,6 +70,10 @@ class Poll(db.Model):
     def nonEmptyBallots(self):
         return itertools.ifilterfalse(Ballot.isEmpty, self.ballots())
 
+    # Returns a list of all non-empty ballots, sorted by voter name.
+    def nonEmptyBallotsSorted(self):
+        return sorted(self.nonEmptyBallots(), key=Ballot.name)
+
     # Returns a list of tuples of releases and dicts mapping categories to
     # lists of votes.  Also sets statistical properties on the Poll object.
     def countVotes(self):
