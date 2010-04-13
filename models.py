@@ -80,8 +80,13 @@ class Poll(db.Model):
         count = collections.defaultdict(lambda: collections.defaultdict(list))
         for b in self.ballots():
             votes = Vote.gql('WHERE ballot = :1 AND release != NULL', b)
+            releases = set()
             for v in votes:
-                count[v.release][v.category].append(v)
+                # Ignore multiple votes on the same ballot for the
+                # same release!
+                if v.release not in releases:
+                    releases.add(v.release)
+                    count[v.release][v.category].append(v)
         self.numVoters = len(list(self.nonEmptyBallots()))
         self.numVotedReleases = len([v for v in count.values()
                                      if v['favorite']])
