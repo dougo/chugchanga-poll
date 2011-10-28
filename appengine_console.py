@@ -3,11 +3,13 @@ import code
 import getpass
 import sys
 
-sys.path.insert(0, "/usr/local/google_appengine")
-sys.path.append("/usr/local/google_appengine/lib/yaml/lib")
-sys.path.append("/usr/local/google_appengine/lib/webob")
-sys.path.append("/usr/local/google_appengine/lib/django")
-sys.path.append("/usr/local/google_appengine/lib/antlr")
+dir = "/home/dougo/google_appengine"
+
+sys.path.insert(0, dir)
+sys.path.append(dir + "/lib/yaml/lib")
+sys.path.append(dir + "/lib/webob")
+sys.path.append(dir + "/lib/django")
+sys.path.append(dir + "/lib/antlr")
 
 print sys.path
 

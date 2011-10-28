@@ -7,7 +7,7 @@
       {% if artist.mbid %}
         <a href="http://musicbrainz.org/artist/{{ artist.mbid }}.html"
 	   title="Show artist at MusicBrainz">
-	  <img src="http://musicbrainz.org/images/aicon_lg.png"
+	  <img src="/static/artist_lg.png"
 	       style="vertical-align: bottom; border: 0px; margin-right: 2px;"
 	       /><b>{{ artist.name }}</b></a>
       {% else %} {% if artist.url %}
@@ -23,7 +23,7 @@
 	{% if r.mbid %}
 	<a href="http://musicbrainz.org/release-group/{{ r.mbid }}.html"
 	   title="Show release-group at MusicBrainz">
-	  <img src="http://musicbrainz.org/images/entity/release-group.gif"
+	  <img src="/static/release_group.png"
 	       style="vertical-align: bottom; border: 0px; margin-right: 2px;"
 	       /><b>{{ r.title }}</b></a>
 	{% else %} {% if r.url %}
