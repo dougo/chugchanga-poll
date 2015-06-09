@@ -1,7 +1,12 @@
-application: chugchanga-poll
+application: chugchanga-poll-hrd
 version: 2
-runtime: python
+runtime: python27
 api_version: 1
+threadsafe: false
+
+libraries:
+- name: django
+  version: "1.2"
 
 handlers:
 - url: /favicon.ico

@@ -2,11 +2,7 @@
 # General Public License v3.  See COPYING for details.
 
 import os
-import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-
-from google.appengine.dist import use_library
-use_library('django', '1.1')
 
 import collections
 import itertools
@@ -19,7 +15,7 @@ mb = musicbrainz
 import time
 import logging
 
-# Globals is a singleton class whose instance hold global values.
+# Globals is a singleton class whose instance hold globals values.
 class Globals(db.Model):
     # Users must enter the secret word before they become Voters.
     secretWord = db.StringProperty()
